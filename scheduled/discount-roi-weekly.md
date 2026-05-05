@@ -51,4 +51,7 @@ STALE CODES (no use in 30+ days):
   [N] codes — recommend cleanup with discount-hygiene-cleanup
 
 If all codes performing well: ✅ Discount portfolio healthy.
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

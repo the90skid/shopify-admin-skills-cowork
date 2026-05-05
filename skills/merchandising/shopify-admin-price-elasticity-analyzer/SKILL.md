@@ -39,6 +39,10 @@ Analyzes price-to-velocity relationships across the product catalog to identify 
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `products` — query
    **Inputs:** `first: 250`, `status: ACTIVE`, select `id`, `title`, `productType`, `vendor`, `variants { price, compareAtPrice, inventoryQuantity }`, pagination cursor

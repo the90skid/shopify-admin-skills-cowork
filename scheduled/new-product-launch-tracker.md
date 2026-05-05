@@ -56,4 +56,7 @@ ATTENTION:
 Save launch tracker to launch_tracker_[date].csv
 
 If no new products in window: skip notification (silent pass).
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

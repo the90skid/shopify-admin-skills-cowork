@@ -35,6 +35,10 @@ Generates a bulk report of orders most likely to generate "Where Is My Order?" (
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `orders` — query (unfulfilled at-risk)
    **Inputs:** `first: <limit>`, `query: "fulfillment_status:unfulfilled created_at:<='<NOW minus unfulfilled_sla_days>'"`, sort by `CREATED_AT` ascending

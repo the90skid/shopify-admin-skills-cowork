@@ -45,6 +45,10 @@ Universal (store, format, dry_run) + skill-specific:
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `order_ids` list or `query_filter` string; fetch each order's `fulfillmentOrders` to get the fulfillment order IDs and current `status`

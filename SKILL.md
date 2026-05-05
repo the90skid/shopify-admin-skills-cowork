@@ -32,3 +32,4 @@ All GraphQL operations execute via the `graphql_query` and `graphql_mutation` MC
 3. Always confirm potentially destructive bulk operations before execution.
 4. Use `dry_run: true` for any mutation skill on first run.
 5. Provide summaries of data rather than raw JSON dumps.
+6. **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report "No data returned" — do not fill in plausible values.**

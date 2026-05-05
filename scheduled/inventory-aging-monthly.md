@@ -54,4 +54,7 @@ ACTIONS:
 • [N] SKUs in 181+ bucket need liquidation decision
 
 Save full aging report to inventory_aging_[YYYY-MM].csv
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

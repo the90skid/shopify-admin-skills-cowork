@@ -54,4 +54,7 @@ VIP HEALTH:
   Lifetime VIP rev:   $[amount]
 
 If no VIP issues: ✅ All VIPs orders flowing smoothly.
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

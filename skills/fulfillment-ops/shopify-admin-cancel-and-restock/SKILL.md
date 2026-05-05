@@ -43,6 +43,10 @@ Cancels an unfulfilled or partially-unfulfilled order with configurable restock,
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `order` — query
    **Inputs:** `id: <order_id>`

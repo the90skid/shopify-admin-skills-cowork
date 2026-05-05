@@ -42,6 +42,10 @@ Walks through recently approved or closed returns and restocks inventory for eac
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `returns` — query
    **Inputs:** `query: "status:<return_status> updated_at:>='<NOW - days_back days>'"` (use `updated_at:>='...'` only when `return_status:ANY`), `first: 250`, select `id`, `name`, `status`, `closedAt`, `order { id name }`, `returnLineItems(first: 50) { quantity, returnReason, fulfillmentLineItem { lineItem { variant { id sku inventoryItem { id tracked } } } } }`, `reverseFulfillmentOrders(first: 5) { reverseDeliveries(first: 5) { deliverable { ... on ReverseDeliveryShippingDeliverable { label { ... } } } }, location { id name } }`, pagination cursor

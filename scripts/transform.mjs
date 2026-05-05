@@ -13,7 +13,7 @@ const SKILLS_DIR = join(ROOT, 'skills');
 
 const ATTRIBUTION = `\n> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)\n> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.\n`;
 
-const MCP_WORKFLOW_NOTE = `> Execute all GraphQL operations via the \`graphql_query\` and \`graphql_mutation\` MCP tools.\n> The Shopify MCP connector handles store authentication automatically.\n`;
+const MCP_WORKFLOW_NOTE = `> Execute all GraphQL operations via the \`graphql_query\` and \`graphql_mutation\` MCP tools.\n> The Shopify MCP connector handles store authentication automatically.\n>\n> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**\n> **product names, order counts, revenue figures, or any other store data. If a query returns**\n> **empty results, report "No data returned" — do not fill in plausible values.**\n`;
 
 async function getSkillFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true, recursive: true });

@@ -51,6 +51,10 @@ A customer can carry multiple flags; the most severe (`invalid_syntax` > `bounce
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `first: 250`, select `id`, `defaultEmailAddress { emailAddress, marketingState }`, `numberOfOrders`, `tags`, pagination cursor. If `marketing_consent_only: true`, filter `query: "email_marketing_state:subscribed"`

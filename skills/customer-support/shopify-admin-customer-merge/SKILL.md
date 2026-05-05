@@ -44,6 +44,10 @@ Resolves duplicate customer records identified by `duplicate-customer-finder`. W
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `customer` — query (called twice: winner and loser)
    **Inputs:** `id: <customer_id>`, select `id`, `displayName`, `firstName`, `lastName`, `defaultEmailAddress { emailAddress }`, `phone`, `tags`, `note`, `numberOfOrders`, `amountSpent`, `emailMarketingConsent { marketingState }`, `smsMarketingConsent { marketingState }`, `addresses(first: 25) { id }`, `createdAt`

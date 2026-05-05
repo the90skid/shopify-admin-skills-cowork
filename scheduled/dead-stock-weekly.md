@@ -53,4 +53,7 @@ RECOMMENDED ACTIONS:
 Save markdown candidates to dead_stock_[date].csv
 
 If dead stock is <5% of total: ✅ Inventory healthy.
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

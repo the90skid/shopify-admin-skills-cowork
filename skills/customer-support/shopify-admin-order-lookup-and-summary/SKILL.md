@@ -35,6 +35,10 @@ Retrieves complete order details for a customer without requiring navigation thr
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `first: <limit>`, `query: "name:<order_number>"` or `"email:<email>"` or `"phone:<phone>"` depending on `lookup_by`

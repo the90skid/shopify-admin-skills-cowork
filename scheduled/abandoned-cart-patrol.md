@@ -50,4 +50,7 @@ Recovery rate: [pct]% (if data available)
 
 If no abandoned carts in window:
 ✅ No abandoned carts in the last 4 hours.
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

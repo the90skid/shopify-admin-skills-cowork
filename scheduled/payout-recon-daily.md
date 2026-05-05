@@ -53,4 +53,7 @@ If discrepancies found, send detailed alert:
   Save reconciliation detail to payout_recon_[date].csv
 
   → Recommend manual review with Shopify Payments dashboard.
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

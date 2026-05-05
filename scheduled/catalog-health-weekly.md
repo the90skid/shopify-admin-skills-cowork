@@ -67,4 +67,7 @@ TOP PRIORITY:
 Save full audit to catalog_health_[date].csv
 
 If health score >90%: ✅ Catalog in good shape.
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```

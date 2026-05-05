@@ -44,6 +44,10 @@ Ranks customers by lifetime spend and order frequency, identifies the top N% (by
 
 > Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
 > The Shopify MCP connector handles store authentication automatically.
+>
+> **CRITICAL: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate**
+> **product names, order counts, revenue figures, or any other store data. If a query returns**
+> **empty results, report "No data returned" — do not fill in plausible values.**
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `first: 250`, `query: "orders_count:>=<min_orders>"`, select `id`, `displayName`, `defaultEmailAddress { emailAddress }`, `numberOfOrders`, `amountSpent { amount currencyCode }`, `tags`, pagination cursor

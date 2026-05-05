@@ -58,4 +58,7 @@ TOP PRIORITY FIXES:
 Save full SEO gap list to seo_audit_[date].csv
 
 If completeness >95%: ✅ SEO catalog healthy.
+
+
+IMPORTANT: Report ONLY data returned by the MCP tools. Never infer, estimate, or fabricate product names, order counts, revenue figures, or any other store data. If a query returns empty results, report 'No data returned' — do not fill in plausible values.
 ```
