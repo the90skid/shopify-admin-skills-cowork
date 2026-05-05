@@ -23,6 +23,12 @@ Skills cover: marketing, merchandising, customer support, customer ops, conversi
 
 ---
 
+## Install
+
+```bash
+claude plugin add github:the90skid/shopify-admin-skills-cowork
+```
+
 ## Setup
 
 1. **Connect the Shopify MCP Connector** in your Claude Cowork settings
