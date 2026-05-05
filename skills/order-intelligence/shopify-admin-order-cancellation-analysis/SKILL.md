@@ -2,26 +2,29 @@
 name: shopify-admin-order-cancellation-analysis
 role: order-intelligence
 description: "Read-only: tracks cancellation rate over time and breaks down cancelled orders by cancelReason to surface fraud, inventory, customer, and declined-payment patterns."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Computes cancellation rate (cancelled orders / total orders) over a configurable window, broken down by `cancelReason` (`CUSTOMER`, `FRAUD`, `INVENTORY`, `DECLINED`, `OTHER`, `STAFF`). Surfaces shifts in cancellation patterns — for example, a spike in `INVENTORY` cancellations suggests a stock data integrity problem, while a spike in `FRAUD` suggests a coordinated attack. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window for orders included in the analysis |
 | bucket | string | no | day | Time bucket: `day`, `week`, or `month` |
 | min_value | float | no | 0 | Only include orders above this total value |
@@ -33,6 +36,9 @@ Computes cancellation rate (cancelled orders / total orders) over a configurable
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. The analysis uses `cancelReason` as recorded by Shopify or staff at cancellation time — accuracy depends on staff selecting the correct reason.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `cancelledAt`, `cancelReason`, `displayFinancialStatus`, `totalPriceSet`, pagination cursor
@@ -91,7 +97,6 @@ query OrdersForCancellationAnalysis($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Order Cancellation Analysis          ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,28 +2,31 @@
 name: shopify-admin-return-fraud-detector
 role: returns
 description: "Read-only: identifies customers with abnormal return behavior — high return rate, wardrobing patterns, or serial returner profiles — for manual review."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - returns:query
   - customers:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Surfaces customers whose return behavior deviates statistically from the store baseline so support and ops can review them before approving the next return. Three patterns are detected: (1) high return rate (≥40% of orders returned), (2) wardrobing — full-order returns shortly after delivery, (3) serial returners — many returns over time. Read-only. Output is a candidate list, not an automatic block list.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_returns,read_customers`
-- API scopes: `read_orders`, `read_returns`, `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_returns`, `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | days_back | integer | no | 365 | Lookback window for orders and returns |
 | min_orders | integer | no | 3 | Minimum lifetime orders for a customer to be evaluated (avoid penalizing one-off accidents) |
@@ -36,6 +39,9 @@ Surfaces customers whose return behavior deviates statistically from the store b
 > ℹ️ Read-only skill — no mutations are executed. Output flags candidates for human review only — never block or restrict customers automatically. False positives are common (genuine size issues, address-correction returns, etc.); investigate before action.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `id`, `customer { id }`, `processedAt`, `fulfillments { deliveredAt }`, `totalPriceSet`, `lineItems { quantity }`, paginate
@@ -130,7 +136,6 @@ query CustomerContactBatch($query: String!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Return Fraud Detector                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

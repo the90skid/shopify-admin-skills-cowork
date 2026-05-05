@@ -2,7 +2,7 @@
 name: shopify-admin-demand-forecast-reorder
 role: merchandising
 description: "Read-only: forecasts demand per SKU using sales velocity and seasonality, then calculates reorder points and suggested purchase order quantities."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
@@ -10,21 +10,24 @@ graphql_operations:
   - inventoryItems:query
   - inventoryLevels:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Forecasts future demand for each SKU based on historical sales velocity, trend analysis, and optional seasonality adjustments. Calculates reorder points (when to order) and suggested reorder quantities (how much to order) factoring in vendor lead times and safety stock. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_products,read_inventory`
-- API scopes: `read_orders`, `read_products`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | days_back | integer | no | 90 | Historical sales window for velocity calculation |
 | forecast_days | integer | no | 30 | Days into the future to forecast demand |
 | lead_time_days | integer | no | 14 | Default vendor lead time in days |
@@ -38,6 +41,9 @@ Forecasts future demand for each SKU based on historical sales velocity, trend a
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `createdAt`, `lineItems { variant { id }, quantity }`, pagination cursor
@@ -154,7 +160,6 @@ query LocationInventory($locationId: ID!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Demand Forecast & Reorder Planner    ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,26 +2,29 @@
 name: shopify-admin-product-image-audit
 role: merchandising
 description: "Read-only: flags products and variants with missing images or fewer than a minimum number of images."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans all active products and their variants for missing or insufficient images. Flags products with zero images, variants with no assigned image, and products below a minimum image count threshold. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products`
-- API scopes: `read_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | min_images | integer | no | 1 | Flag products with fewer than this many images |
 | check_variants | bool | no | true | Also flag variants with no assigned image |
 | status_filter | string | no | active | Product status to scan: `active`, `draft`, or `all` |
@@ -32,6 +35,9 @@ Scans all active products and their variants for missing or insufficient images.
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `query: "status:<status_filter>"`, `first: 250`, select `images`, `variants { image }`, pagination cursor
@@ -93,7 +99,6 @@ query ProductImageAudit($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Product Image Audit                  ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

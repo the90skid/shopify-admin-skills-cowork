@@ -2,27 +2,30 @@
 name: shopify-admin-repeat-purchase-rate
 role: order-intelligence
 description: "Read-only: calculates what percentage of customers place 2+ orders within N days, segmented by product or collection."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates the repeat purchase rate — the percentage of customers who return to place at least one more order within a defined window — and segments it by first-purchase product or collection. Identifies which products drive the highest repeat purchase behavior. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,read_orders`
-- API scopes: `read_customers`, `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 90 | Acquisition window — customers first purchased in this period |
 | repeat_window | integer | no | 90 | Days after first purchase to look for a repeat order |
 | segment_by | string | no | none | Segment repeat rate by: `product`, `none` |
@@ -33,6 +36,9 @@ Calculates the repeat purchase rate — the percentage of customers who return t
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `id`, `numberOfOrders`, `createdAt`
@@ -109,7 +115,6 @@ query CustomerOrderHistory($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Repeat Purchase Rate                 ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

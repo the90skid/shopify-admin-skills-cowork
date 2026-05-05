@@ -2,26 +2,29 @@
 name: shopify-admin-order-lookup-and-summary
 role: customer-support
 description: "Retrieve and summarize full order details for a customer by email, order number, or phone number."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Retrieves complete order details for a customer without requiring navigation through the Shopify admin UI. Useful for support agents answering customer queries about order status, shipping tracking, and refunds. This skill operates directly on the Shopify-native data layer, returning full order context in a single operation.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | lookup_by | string | yes | — | `order_number`, `email`, or `phone` |
@@ -29,6 +32,9 @@ Retrieves complete order details for a customer without requiring navigation thr
 | limit | integer | no | 5 | Maximum number of orders to return |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `first: <limit>`, `query: "name:<order_number>"` or `"email:<email>"` or `"phone:<phone>"` depending on `lookup_by`
@@ -122,7 +128,6 @@ query OrderLookup($first: Int!, $query: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: order-lookup-and-summary             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,26 +2,29 @@
 name: shopify-admin-email-deliverability-audit
 role: customer-ops
 description: "Read-only: scans the customer database for malformed emails, role accounts, disposable domains, and bounce-suspect patterns to protect sender reputation."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans the entire customer list and flags addresses that will hurt email deliverability if included in marketing sends: syntactically invalid addresses, role accounts (info@, admin@, sales@), known disposable / temporary domains, and suspected hard-bounce patterns. Output is a suppression list ready to import into your email platform. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers`
-- API scopes: `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | marketing_consent_only | bool | no | true | Only scan customers who currently accept marketing — those are the ones at risk of being mailed |
 | disposable_domains | array | no | built-in list | Override built-in disposable-domain list |
 | role_localparts | array | no | `["info","admin","sales","support","contact","noreply","help","webmaster","postmaster"]` | Local-part prefixes to flag as role accounts |
@@ -45,6 +48,9 @@ For each customer email, run these checks in order and assign one or more flags:
 A customer can carry multiple flags; the most severe (`invalid_syntax` > `bounce_suspect` > `disposable_domain` > `role_account` > `plus_alias`) drives the recommended action.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `first: 250`, select `id`, `defaultEmailAddress { emailAddress, marketingState }`, `numberOfOrders`, `tags`, pagination cursor. If `marketing_consent_only: true`, filter `query: "email_marketing_state:subscribed"`
@@ -93,7 +99,6 @@ query DeliverabilityAudit($query: String, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Email Deliverability Audit           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

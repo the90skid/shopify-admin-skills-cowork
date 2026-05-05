@@ -2,27 +2,30 @@
 name: shopify-admin-delivery-time-analysis
 role: fulfillment-ops
 description: "Read-only: calculates average time from fulfillment creation to delivery by carrier using fulfillment and order data."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - fulfillmentOrders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Analyzes fulfilled orders to calculate average transit time (fulfillment created → delivered) broken down by carrier. Surfaces which carriers are consistently slow or missing delivery confirmations. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window for fulfilled orders |
 | min_orders | integer | no | 5 | Minimum orders per carrier to include in averages |
 | location_id | string | no | — | Filter by fulfillment location (optional) |
@@ -33,6 +36,9 @@ Analyzes fulfilled orders to calculate average transit time (fulfillment created
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "fulfillment_status:shipped created_at:>='<NOW - days_back days>'"`, `first: 250`, pagination cursor
@@ -116,7 +122,6 @@ query FulfillmentOrdersByLocation($locationId: ID!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Delivery Time Analysis               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,26 +2,29 @@
 name: shopify-admin-referral-source-attribution
 role: marketing
 description: "Read-only: parses each order's landing site and referrer URL to break down orders, revenue, and AOV by traffic source — direct, organic, paid, social, email, or referral domain."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Aggregates orders by their first-touch traffic source — extracted from each order's `landingPageUrl`, `referrerUrl`, and any UTM parameters embedded in the landing URL. Produces an attribution table showing orders, revenue, and AOV per source so merchants can see which channels are actually converting. Read-only — no mutations. Use when native Shopify analytics dashboards aren't granular enough or when you need to export raw attribution data for an external model.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | days_back | integer | no | 30 | Lookback window in days |
 | min_orders | integer | no | 1 | Minimum orders per source to include in the human-readable summary |
@@ -33,6 +36,9 @@ Aggregates orders by their first-touch traffic source — extracted from each or
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `id`, `name`, `createdAt`, `landingPageUrl`, `referrerUrl`, `customerJourneySummary { firstVisit { landingPage referrerUrl source sourceType utmParameters { source medium campaign term content } } }`, `totalPriceSet`, `customer { numberOfOrders }`, pagination cursor
@@ -111,7 +117,6 @@ query OrdersForAttribution($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Referral Source Attribution          ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

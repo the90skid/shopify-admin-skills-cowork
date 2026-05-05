@@ -2,27 +2,30 @@
 name: shopify-admin-fulfillment-status-digest
 role: fulfillment-ops
 description: "Generate a daily fulfillment triage digest: all open orders segmented by fulfillment age and flagged for holds or exceptions."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - fulfillmentOrders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Produces a daily ops triage digest of all unfulfilled and partially-fulfilled orders, segmented by how long they've been waiting. Flags orders with active holds. Replaces the manual process of scrolling through the Shopify admin Orders page to find aging orders and exceptions — this skill fetches every open order, computes its age, buckets it into configurable time segments, and surfaces any orders currently on a fulfillment hold, giving the ops team a complete exception queue in a single read-only operation.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | aging_thresholds_days | array | no | [1, 3, 7] | Day boundaries for age buckets (e.g., `[1,3,7]` creates: 0–1d, 1–3d, 3–7d, 7d+) |
@@ -30,6 +33,9 @@ Produces a daily ops triage digest of all unfulfilled and partially-fulfilled or
 | limit | integer | no | 250 | Maximum orders to fetch per page |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `first: <limit>`, `query: "fulfillment_status:unfulfilled OR fulfillment_status:partial"`, sort by `CREATED_AT` ascending (oldest first), paginate until complete
@@ -90,7 +96,6 @@ Note: `fulfillmentOrders` is a nested field on the `Order` type — the `fulfill
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: fulfillment-status-digest            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

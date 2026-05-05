@@ -2,26 +2,29 @@
 name: shopify-admin-subscription-mrr-tracker
 role: finance
 description: "Read-only: for stores with subscription products, calculates MRR, ARR, active subscriber count, and rolling churn rate from subscription contracts."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - subscriptionContracts:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 For stores selling subscription products via Shopify's native subscriptions, this skill aggregates active subscription contracts into the standard SaaS-style metrics finance teams care about: monthly recurring revenue (MRR), annualized recurring revenue (ARR), active subscriber count, average revenue per subscriber (ARPU), and a rolling churn rate. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_own_subscription_contracts`
-- API scopes: `read_own_subscription_contracts`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_own_subscription_contracts`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | churn_window_days | integer | no | 30 | Rolling window for churn calculation (cancellations / starting subscribers) |
 | as_of | string | no | today (UTC) | ISO date for "as of" snapshot label |
 | include_paused | bool | no | false | Treat `PAUSED` contracts as active recurring revenue |
@@ -55,6 +58,9 @@ Aggregations:
 - **Net new subscribers** = new contracts inside the window − cancelled contracts inside the window
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `subscriptionContracts` — query
    **Inputs:** `first: 250`, select `id`, `status`, `createdAt`, `updatedAt`, `nextBillingDate`, `customer { id, displayName }`, `currencyCode`, `billingPolicy { interval, intervalCount }`, `lines { edges { node { currentPrice { amount, currencyCode }, quantity, productId, variantId, title } } }`, pagination cursor
@@ -118,7 +124,6 @@ query SubscriptionMRR($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Subscription MRR Tracker             ║
-║  Store: <store domain>                       ║
 ║  As of: <YYYY-MM-DD>                         ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝

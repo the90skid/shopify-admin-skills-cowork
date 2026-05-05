@@ -2,26 +2,29 @@
 name: shopify-admin-customer-acquisition-cost-by-source
 role: customer-ops
 description: "Read-only: estimates customer acquisition cost (CAC) per traffic source by joining order count per landing site / referrer with configurable ad spend."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Estimates customer acquisition cost (CAC) for each traffic source by combining the number of new-customer orders attributed to a landing page / referrer with a configurable ad spend input per source. Output answers: "for every dollar spent on source X, how many new customers did we acquire and at what unit cost?" Read-only — no mutations. Provides the data foundation for paid-media budget reallocation.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_customers`
-- API scopes: `read_orders`, `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window for orders to attribute |
 | ad_spend | object | no | {} | Map of source name → spend in store currency, e.g. `{"google": 4500, "meta": 3200, "tiktok": 1800}` |
 | new_customers_only | bool | no | true | Count only first-order customers as "acquired" |
@@ -33,6 +36,9 @@ Estimates customer acquisition cost (CAC) for each traffic source by combining t
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. Ad spend values are caller-provided; this skill does not pull from any ad platform.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `customer { id, numberOfOrders }`, `customerJourneySummary { firstVisit { landingPage referrerUrl source } }`, `landingPageUrl`, `referrerUrl`, `totalPriceSet`, pagination cursor
@@ -106,7 +112,6 @@ query OrdersWithAttribution($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Customer Acquisition Cost by Source  ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,27 +2,30 @@
 name: shopify-admin-bulk-fulfillment-creation
 role: fulfillment-ops
 description: "Batch-fulfill open fulfillment orders with tracking numbers. Supports partial fulfillment and customer notification toggle."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - fulfillmentOrders:query
   - fulfillmentCreate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all open fulfillment orders for a location and batch-creates fulfillments with tracking numbers in a single workflow. No third-party app required — this skill handles the fulfillment creation layer; carrier label generation requires a separate tool or carrier integration.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,write_fulfillments`
-- API scopes: `read_orders`, `write_fulfillments`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_fulfillments`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | location_id | string | yes | — | GID of the fulfillment location (e.g., gid://shopify/Location/123) |
 | tracking_numbers | array | no | [] | List of `{fulfillment_order_id, tracking_number, tracking_url, carrier}` objects |
 | notify_customer | bool | no | true | Send shipping confirmation email to customer |
@@ -34,6 +37,9 @@ Queries all open fulfillment orders for a location and batch-creates fulfillment
 > ⚠️ `fulfillmentCreate` is irreversible — fulfilled orders cannot be unfulfilled via the API. Run with `dry_run: true` first to confirm the list of fulfillment orders before committing. Each mutation creates one fulfillment record per fulfillment order.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `fulfillmentOrders` — query
    **Inputs:** `assignedLocationId: <location_id>`, `status: OPEN`, `first: 250`, pagination cursor
@@ -113,7 +119,6 @@ mutation FulfillmentCreate($fulfillment: FulfillmentInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Bulk Fulfillment Creation            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

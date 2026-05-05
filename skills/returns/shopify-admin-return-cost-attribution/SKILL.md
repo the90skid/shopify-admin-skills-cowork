@@ -2,28 +2,31 @@
 name: shopify-admin-return-cost-attribution
 role: returns
 description: "Read-only: calculates the true cost of returns by reason and product — refund dollars, restocking impact, shipping cost lost, and COGS impact for items written off."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - returns:query
   - orders:query
   - inventoryItems:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Quantifies the full cost of returns over a window — not just the refunded amount. Combines refund totals, lost shipping revenue, COGS for non-restockable items (e.g., `DEFECTIVE`), and restocking labor into a per-reason and per-product return P&L. Read-only. Use to prioritize which reasons or product lines deserve operational fixes — better packaging, size guides, listing accuracy.
 
 ## Prerequisites
-- `shopify store auth --store <domain> --scopes read_orders,read_returns,read_inventory`
-- API scopes: `read_orders`, `read_returns`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_returns`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | days_back | integer | no | 90 | Lookback window for returns |
 | group_by | string | no | reason | Aggregation level: `reason`, `product`, `sku`, or `reason_x_product` |
@@ -36,6 +39,9 @@ Quantifies the full cost of returns over a window — not just the refunded amou
 > ℹ️ Read-only skill — no mutations are executed. Cost figures are estimates derived from `unitCost`, refund totals, and `flat_restocking_cost` — calibrate the flat-cost figure to your operation before treating outputs as accounting truth.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `returns` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select returns with line item pricing, product/variant, `inventoryItem.id`
@@ -139,7 +145,6 @@ query InventoryUnitCosts($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Return Cost Attribution              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

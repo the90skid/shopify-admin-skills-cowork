@@ -2,26 +2,29 @@
 name: shopify-admin-marketing-consent-report
 role: customer-ops
 description: "Read-only: audits email and SMS marketing consent status across the customer base for compliance and segmentation."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans all customer records and reports the breakdown of email and SMS marketing consent status (subscribed, unsubscribed, pending, never asked). Used for compliance audits, GDPR/CAN-SPAM reviews, and understanding the addressable marketing audience. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers`
-- API scopes: `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | channel | string | no | both | Consent channel to audit: `email`, `sms`, or `both` |
 | format | string | no | human | Output format: `human` or `json` |
 
@@ -30,6 +33,9 @@ Scans all customer records and reports the breakdown of email and SMS marketing 
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `first: 250`, select `emailMarketingConsent { marketingState, consentUpdatedAt }`, `smsMarketingConsent { marketingState, consentUpdatedAt }`, pagination cursor
@@ -79,7 +85,6 @@ query MarketingConsentAudit($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Marketing Consent Report             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

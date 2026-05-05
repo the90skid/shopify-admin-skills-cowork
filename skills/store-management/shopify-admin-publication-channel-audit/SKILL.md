@@ -2,27 +2,30 @@
 name: shopify-admin-publication-channel-audit
 role: store-management
 description: "Read-only: shows which products are published to which sales channels and flags unpublished active products."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - publications:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all active products and the publications (sales channels) they are visible on. Flags products that are active but missing from key channels (e.g., Online Store, Google Shopping, Meta). Prevents silent revenue loss from products that exist in the catalog but are invisible on sales channels. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,read_publications`
-- API scopes: `read_products`, `read_publications`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_publications`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | required_channels | array | no | ["Online Store"] | Channel names that all active products should be on |
 | format | string | no | human | Output format: `human` or `json` |
 
@@ -31,6 +34,9 @@ Queries all active products and the publications (sales channels) they are visib
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `publications` — query
    **Inputs:** `first: 50`
@@ -102,7 +108,6 @@ query ProductPublications($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Publication Channel Audit            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,26 +2,29 @@
 name: shopify-admin-wismo-bulk-status-report
 role: customer-support
 description: "Identify orders at risk of generating WISMO support tickets: shipped orders with stale tracking, and unfulfilled orders past their SLA window."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Generates a bulk report of orders most likely to generate "Where Is My Order?" (WISMO) support tickets — shipped orders whose tracking hasn't updated in N days, and unfulfilled orders sitting past a configurable SLA. According to industry research, WISMO accounts for ~18% of all incoming support requests, making proactive identification a direct ops capacity investment. Read-only. Replaces manual order-by-order admin scanning or helpdesk searches. The CSV output can be used to proactively contact customers before they contact you.
 
 ## Prerequisites
-- `shopify auth login --store <domain>`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | unfulfilled_sla_days | integer | no | 3 | Flag unfulfilled orders older than this many days |
@@ -29,6 +32,9 @@ Generates a bulk report of orders most likely to generate "Where Is My Order?" (
 | limit | integer | no | 250 | Max orders per page |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query (unfulfilled at-risk)
    **Inputs:** `first: <limit>`, `query: "fulfillment_status:unfulfilled created_at:<='<NOW minus unfulfilled_sla_days>'"`, sort by `CREATED_AT` ascending
@@ -95,7 +101,6 @@ query WismoOrders($first: Int!, $after: String, $query: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: wismo-bulk-status-report             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,28 +2,31 @@
 name: shopify-admin-dead-stock-identifier
 role: merchandising
 description: "Read-only: cross-references inventory levels with order velocity to flag items with positive stock but zero sales in N days."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - productVariants:query
   - orders:query
   - inventoryItems:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Identifies SKUs that have positive inventory on hand but have not sold any units in a configurable lookback window. Dead stock ties up capital, warehouse space, and carrying costs. Read-only — no mutations. Provides the data foundation for a markdown or clearance decision.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,read_orders,read_inventory`
-- API scopes: `read_products`, `read_orders`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_orders`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 90 | Sales lookback window — SKUs with no sales in this period are flagged |
 | min_quantity | integer | no | 1 | Minimum on-hand quantity to include (exclude truly zero-stock) |
 | vendor_filter | string | no | — | Optional vendor to scope the audit |
@@ -34,6 +37,9 @@ Identifies SKUs that have positive inventory on hand but have not sold any units
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `productVariants` — query
    **Inputs:** `first: 250`, `query: <vendor_filter if set>`, select `sku`, `inventoryQuantity`, `inventoryItem { id }`, pagination cursor
@@ -131,7 +137,6 @@ query InventoryItemCosts($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Dead Stock Identifier                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,27 +2,30 @@
 name: shopify-admin-average-order-value-trends
 role: finance
 description: "Read-only: tracks AOV over time buckets and segments by new vs. returning customers."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - customers:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates Average Order Value (AOV) over configurable time buckets (daily, weekly, monthly) and segments results by new vs. returning customers. Tracks AOV trends to measure the impact of upsell programs, bundle offers, or free shipping thresholds. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_customers`
-- API scopes: `read_orders`, `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 90 | Total lookback window |
 | bucket | string | no | week | Time bucket: `day`, `week`, or `month` |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Calculates Average Order Value (AOV) over configurable time buckets (daily, week
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `totalPriceSet`, `customer { id, numberOfOrders }`, `createdAt`, pagination cursor
@@ -102,7 +108,6 @@ query NewVsReturningCustomers($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Average Order Value Trends           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

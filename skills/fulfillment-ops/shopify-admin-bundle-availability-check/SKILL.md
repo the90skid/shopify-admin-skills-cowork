@@ -2,28 +2,31 @@
 name: shopify-admin-bundle-availability-check
 role: fulfillment-ops
 description: "Read-only: for native bundle products and metafield-defined bundles, verifies every component variant has sufficient stock to fulfill the bundle's effective availability."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - productVariants:query
   - inventoryItems:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Walks every product flagged as a bundle (either via Shopify's native `requiresComponents` mechanic or a `bundle.components` metafield convention), then verifies each component variant has sufficient inventory to back the bundle's quantity ratio. Surfaces bundles that are listed as in-stock on the storefront but cannot actually be fulfilled because one component has run out. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,read_inventory`
-- API scopes: `read_products`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | metafield_namespace | string | no | bundle | Metafield namespace where bundle component definitions live |
 | metafield_key | string | no | components | Metafield key that holds the JSON list of `{variantId, quantity}` |
 | safety_stock | integer | no | 0 | Treat component as out-of-stock if on-hand minus this buffer is below required |
@@ -35,6 +38,9 @@ Walks every product flagged as a bundle (either via Shopify's native `requiresCo
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. The skill reads inventory and metafields only; it never adjusts component quantities or bundle availability.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `first: 250`, `query: "metafield:<namespace>.<key>:* OR product_type:bundle"`, select `requiresSellingPlan`, `status`, `metafield(namespace, key)`, `variants`, pagination cursor
@@ -161,7 +167,6 @@ query ComponentInventoryLevels($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Bundle Availability Check            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

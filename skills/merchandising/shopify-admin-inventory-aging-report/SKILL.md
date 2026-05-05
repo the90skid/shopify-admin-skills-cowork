@@ -2,28 +2,31 @@
 name: shopify-admin-inventory-aging-report
 role: merchandising
 description: "Read-only: categorizes inventory into aging buckets (0-30, 31-60, 61-90, 90+ days) based on time since last sale or receipt."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - productVariants:query
   - orders:query
   - inventoryItems:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Categorizes all inventory into aging buckets based on how long items have been sitting without selling. Calculates carrying cost exposure by bucket to prioritize markdown or liquidation decisions. Goes deeper than dead-stock identification by providing aging granularity. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_products,read_inventory`
-- API scopes: `read_orders`, `read_products`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | buckets | string | no | 0-30,31-60,61-90,91-180,181+ | Comma-separated aging buckets in days |
 | carrying_cost_pct | float | no | 25 | Annual carrying cost as % of inventory value (industry avg 20-30%) |
 | vendor_filter | string | no | — | Scope to specific vendor |
@@ -34,6 +37,9 @@ Categorizes all inventory into aging buckets based on how long items have been s
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `productVariants` — query
    **Inputs:** `first: 250`, select `id`, `sku`, `inventoryQuantity`, `inventoryItem { id, unitCost }`, `product { title, vendor, status }`, pagination cursor
@@ -126,7 +132,6 @@ query InventoryItemCosts($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Inventory Aging Report               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,28 +2,31 @@
 name: shopify-admin-abandoned-cart-recovery
 role: marketing
 description: "Query checkouts abandoned in the last N days, generate unique discount codes per customer, and tag them for re-engagement."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - abandonedCheckouts:query
   - discountCodeBulkCreate:mutation
   - tagsAdd:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Identifies customers who started checkout but did not complete their purchase, generates a unique discount code for each one, and tags them in Shopify so they can be targeted in follow-up campaigns. This skill handles the Shopify-native data layer (querying, discounts, tagging); sending the actual email requires an external tool.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_checkouts`, `write_price_rules`, `write_discount_codes`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_checkouts`, `write_price_rules`, `write_discount_codes`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | days_back | integer | no | 7 | Lookback window for abandoned checkouts |
@@ -37,6 +40,9 @@ Identifies customers who started checkout but did not complete their purchase, g
 > ⚠️ Steps 2 and 3 execute mutations (discount code creation, customer tagging). Discount codes created via `discountCodeBulkCreate` cannot be bulk-deleted via the Admin API — they must be removed individually or via the price rule. Run with `dry_run: true` to verify eligible customer count before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `abandonedCheckouts` — query
    **Inputs:** `first: 250`, `query: "created_at:>='<NOW - days_back days>'"`, pagination cursor
@@ -131,7 +137,6 @@ mutation TagsAdd($id: ID!, $tags: [String!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Abandoned Cart Recovery              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

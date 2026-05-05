@@ -2,27 +2,30 @@
 name: shopify-admin-customer-cohort-analysis
 role: customer-ops
 description: "Read-only: groups customers by first-purchase month and tracks repeat purchase rate and revenue per cohort."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Groups customers by the month of their first purchase and tracks how each cohort performs over time: how many customers repurchase, how many orders they place, and how much revenue each cohort generates in subsequent months. Cohort analysis is the gold standard for measuring retention and the health of a subscription or loyalty program. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,read_orders`
-- API scopes: `read_customers`, `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | cohort_months | integer | no | 6 | Number of months of cohorts to analyze |
 | follow_months | integer | no | 3 | Number of months to follow each cohort after acquisition |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Groups customers by the month of their first purchase and tracks how each cohort
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `query: "created_at:>='<NOW - cohort_months months>'"`, `first: 250`, select `id`, `createdAt`, `numberOfOrders`, pagination cursor
@@ -106,7 +112,6 @@ query CohortOrders($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Customer Cohort Analysis             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

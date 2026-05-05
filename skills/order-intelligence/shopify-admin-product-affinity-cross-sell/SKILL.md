@@ -2,26 +2,29 @@
 name: shopify-admin-product-affinity-cross-sell
 role: order-intelligence
 description: "Mine order history to find which products are most frequently bought together, then rank pairs by support, confidence, and lift to power bundles and cross-sell recommendations."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Applies market basket analysis to your order history to surface product pairs that customers naturally buy together. For every co-purchased pair it calculates **support** (how often the pair appears), **confidence** (given product A, how likely is B?), and **lift** (how much more likely than chance). The output is actionable input for product bundles, "frequently bought together" widgets, cross-sell email flows, and homepage recommendations. Read-only — no mutations are executed.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `read_products` (validator-confirmed: line item `product` field traverses the product graph)
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products` (validator-confirmed: line item `product` field traverses the product graph)
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | date_range_start | string | yes | — | Start date in ISO 8601 (e.g., `2025-01-01`) |
@@ -34,6 +37,9 @@ Applies market basket analysis to your order history to surface product pairs th
 | exclude_tags | string | no | — | Comma-separated product tags to exclude (e.g., `gift-wrap,donation`) |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `first: 250`, `query: "created_at:>='<date_range_start>' created_at:<='<date_range_end>'"`, pagination cursor; select `lineItems` with `product { id, title }` and `quantity`; skip orders with a single line item
@@ -88,7 +94,6 @@ query OrdersForAffinityAnalysis($first: Int!, $after: String, $query: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: product-affinity-cross-sell          ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

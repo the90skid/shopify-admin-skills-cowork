@@ -2,29 +2,32 @@
 name: shopify-admin-inventory-transfer-between-locations
 role: merchandising
 description: "Moves inventory units from one location to another by decrementing the source and incrementing the destination."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - locations:query
   - inventoryItems:query
   - inventoryAdjustQuantities:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Transfers a specified quantity of inventory from a source location to a destination location using paired inventory adjustments (decrement source, increment destination). Used for inter-warehouse rebalancing, pre-positioning stock before a sale, or redistributing inventory after a location change. Replaces manual inventory transfer in Shopify Admin.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,write_inventory,read_inventory`
-- API scopes: `read_products`, `read_inventory`, `write_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_inventory`, `write_inventory`
 - Both source and destination must be active Shopify locations
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | source_location_id | string | yes | — | GID of the location to move stock FROM |
 | destination_location_id | string | yes | — | GID of the location to move stock TO |
 | transfers | array | yes | — | List of `{sku, quantity}` objects to transfer |
@@ -36,6 +39,9 @@ Transfers a specified quantity of inventory from a source location to a destinat
 > ⚠️ `inventoryAdjustQuantities` directly modifies inventory levels. Decrementing the source below zero is possible if the quantity exceeds available stock — the skill will warn but Shopify does not block negative adjustments. Run with `dry_run: true` to verify available quantities at the source before committing. This does NOT create a transfer order record in Shopify; it is a direct adjustment.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `locations` — query
    **Inputs:** `first: 50`
@@ -131,7 +137,6 @@ mutation InventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Inventory Transfer Between Locations ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

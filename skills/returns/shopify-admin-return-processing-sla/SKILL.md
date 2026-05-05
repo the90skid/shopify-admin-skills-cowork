@@ -2,27 +2,30 @@
 name: shopify-admin-return-processing-sla
 role: returns
 description: "Read-only: measures average time from return request to refund completion, surfacing SLA breaches."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - returns:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates the time from return request creation to refund issuance for all completed returns in a period. Surfaces the average processing time, identifies orders that breached a configurable SLA threshold, and lists the longest-pending open returns. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_returns`
-- API scopes: `read_orders`, `read_returns`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_returns`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window for return requests |
 | sla_days | integer | no | 5 | Maximum acceptable days from request to refund |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Calculates the time from return request creation to refund issuance for all comp
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `returns` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, pagination cursor
@@ -125,7 +131,6 @@ query OrdersWithOpenReturns($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Return Processing SLA                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

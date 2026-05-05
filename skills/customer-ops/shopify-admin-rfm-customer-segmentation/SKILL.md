@@ -2,27 +2,30 @@
 name: shopify-admin-rfm-customer-segmentation
 role: customer-ops
 description: "Read-only: scores every customer on Recency, Frequency, and Monetary value to segment them into actionable groups (Champions, Loyal, At-Risk, Lost)."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Performs full RFM (Recency, Frequency, Monetary) analysis across the entire customer base. Each customer is scored 1-5 on three dimensions — how recently they purchased, how often they purchase, and how much they spend — then classified into actionable segments: Champions, Loyal Customers, Potential Loyalists, At-Risk, Hibernating, and Lost. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_customers`
-- API scopes: `read_orders`, `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 365 | Lookback window for order history |
 | segments | integer | no | 5 | Number of quintile buckets per dimension (3 or 5) |
 | min_orders | integer | no | 1 | Minimum orders for a customer to be scored |
@@ -49,6 +52,9 @@ Performs full RFM (Recency, Frequency, Monetary) analysis across the entire cust
 | Lost | 1 | 1-2 | 1-5 | Haven't bought in a very long time |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `createdAt`, `totalPriceSet`, `customer { id, email, firstName, lastName, numberOfOrders }`, pagination cursor
@@ -124,7 +130,6 @@ query CustomerDetails($query: String, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: RFM Customer Segmentation           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -1,95 +1,115 @@
-# Contributing to Shopify Operator Skills
+# Contributing to shopify-admin-skills-cowork
 
-Thank you for contributing! This repo maintains AI agent skills that teach Claude to operate Shopify stores programmatically — no apps, no UI navigation, native Shopify APIs only.
+> This repo is a fork of [40RTY-ai/shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills) by [40rty](https://40rty.ai), adapted for Claude Cowork + Official Shopify MCP Connector.
 
+## Adding a New Skill
+
+### 1. Use the template
+
+Copy `docs/skill-template.md` into the appropriate category directory:
+
+```
+skills/<category>/shopify-admin-<your-skill-name>/SKILL.md
+```
+
+### 2. Required frontmatter fields
+
+```yaml
+---
+name: shopify-admin-<your-skill-name>
+role: <category>
+description: "One sentence describing the business outcome."
+toolkit: shopify-mcp-connector
+api_version: "2025-01"
+graphql_operations:
+  - OperationName:query
+  - OperationName:mutation
+status: stable
+compatibility: Claude Cowork
+---
+```
+
+### 3. Prerequisites format
+
+Always use MCP connector style — no CLI commands:
+
+```markdown
 ## Prerequisites
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_products` (list yours)
+```
 
-- Node.js 18+, pnpm 9+
-- A Shopify development store with CLI access (`shopify auth login`)
-- Familiarity with Shopify Admin GraphQL API
+### 4. No `store` parameter
 
-## Setup
+Do not include a `store` parameter in the Parameters table. The MCP connector is pre-bound to the store.
+
+### 5. Workflow Steps format
+
+Always include the MCP note at the top of Workflow Steps:
+
+```markdown
+## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
+```
+
+### 6. Attribution
+
+Include this block below the frontmatter `---`:
+
+```markdown
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+```
+
+---
+
+## Running Validation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/shopify-admin-skills.git
-cd shopify-admin-skills
-pnpm install
-pnpm validate:index  # should pass on a clean clone
+npm run validate:index
 ```
 
-## Writing a New Skill
+This verifies the GraphQL operations index matches the frontmatter in all skill files.
 
-### 1. Choose a workflow
-
-Skills live under `skills/<role>/` where role is one of:
-`marketing` | `merchandising` | `customer-support` | `customer-ops` | `conversion-optimization` | `fulfillment-ops` | `finance` | `order-intelligence` | `returns` | `store-management`
-
-A valid skill must:
-- Be achievable with native Shopify Admin GraphQL only (no 3rd-party APIs)
-- Have a clear, verifiable output
-- Be executable non-interactively via CLI
-- Map to a workflow currently done via a popular Shopify app
-
-### 2. Scaffold
-
-```bash
-mkdir -p skills/<role>/<workflow-slug>
-cp docs/skill-template.md skills/<role>/<workflow-slug>/SKILL.md
-```
-
-### 3. Fill in the template
-
-Required frontmatter fields: `name`, `role`, `description`, `toolkit`, `api_version`, `graphql_operations`, `status`.
-
-Use the `shopify-admin` skill from the [Shopify AI Toolkit](https://github.com/Shopify/Shopify-AI-Toolkit) to search and validate every GraphQL operation before writing it into the skill.
-
-The `## Session Tracking` section must be copied verbatim from `docs/skill-template.md`. Do not paraphrase.
-
-### 4. Update the operations index
-
-Add a row to `docs/graphql-operations-index.md` for every operation in your skill's `graphql_operations` frontmatter:
-
-```
-| OperationName | query | 2025-01 | <role>/<workflow-slug> |
-```
-
-### 5. Validate and smoke test
-
-```bash
-pnpm validate:index   # must pass
-pnpm lint             # must pass
-
-# Smoke test: run the skill's GraphQL operations against a dev store
-shopify store execute --store <your-dev-store> --query '<query from SKILL.md>'
-```
-
-**Scope reference by skill type:**
-
-| Skill type | Required scopes |
-|---|---|
-| Orders / refunds / returns | `read_orders` + `read_products` (line items traverse the product graph) |
-| Products / variants / inventory | `read_products`, `read_inventory` |
-| Customers | `read_customers` |
-| Analytics (ShopifyQL) | `read_reports` — **not** `read_analytics` |
-| Mutations (pricing, tagging, fulfillment) | Corresponding `write_*` scope |
-
-**ShopifyQL notes (`FROM sessions` and analytics queries):**
-- `LIKE` is not a supported ShopifyQL operator — filter string columns in-memory after fetching
-- Do not alias a column to a name that is already a reserved column name (e.g., `count() AS sessions` fails because `sessions` already exists)
-- Available metrics vary by data source; confirm by running the query and inspecting `tableData.columns` — do not assume column names from documentation examples
-- `converted_sessions` and `bounce_rate` are **not** available in `FROM sessions`; use `conversion_rate` (returned as a decimal)
-- Skills using `shopifyqlQuery` require `read_reports` scope and Shopify Basic plan or above
-
-### 6. Submit a PR
-
-Branch name: `skill/<role>/<workflow-slug>`
-One skill per PR. CI must pass. Maintainer runs a smoke test before merge.
+---
 
 ## PR Checklist
 
-- [ ] `pnpm validate:index` passes
-- [ ] `pnpm lint` passes
-- [ ] All required frontmatter fields present
-- [ ] `## Session Tracking` section copied verbatim from template
-- [ ] `docs/graphql-operations-index.md` updated for all new operations
-- [ ] GraphQL validated against `api_version` using Shopify AI Toolkit
+Before submitting a pull request, verify:
+
+- [ ] Attribution line present in the skill file
+- [ ] No hardcoded store domains anywhere
+- [ ] No Shopify CLI references (`shopify auth`, `shopify store execute`)
+- [ ] No `store` parameter in the Parameters table
+- [ ] `toolkit: shopify-mcp-connector` in frontmatter
+- [ ] `compatibility: Claude Cowork` in frontmatter
+- [ ] MCP workflow note present in Workflow Steps
+- [ ] GraphQL operations validated against `api_version: "2025-01"`
+- [ ] `dry_run` parameter included for any mutation skill
+
+---
+
+## Adding a Scheduled Task
+
+Place your task file in `scheduled/<task-name>.md`. Follow the same frontmatter conventions plus add:
+
+```yaml
+platform: Claude Cowork
+cron: "0 8 * * *"  # your schedule
+```
+
+Include a setup block:
+
+```markdown
+## Setup in Claude Cowork
+Use the `schedule` skill to register this task:
+> "Schedule [task name] to run [frequency]"
+```
+
+---
+
+## License
+
+MIT. All contributions inherit the same license.

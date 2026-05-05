@@ -2,28 +2,31 @@
 name: shopify-admin-revenue-by-location-report
 role: finance
 description: "Read-only: breaks down revenue by fulfillment location for multi-warehouse P&L and location performance."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - fulfillmentOrders:query
   - locations:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Attributes order revenue to the fulfillment location that shipped the order. Produces a revenue breakdown by warehouse or fulfillment center, useful for multi-location P&L, location staffing decisions, and understanding where demand is being fulfilled from. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window |
 | format | string | no | human | Output format: `human` or `json` |
 
@@ -32,6 +35,9 @@ Attributes order revenue to the fulfillment location that shipped the order. Pro
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `locations` — query
    **Inputs:** `first: 50`, active only
@@ -137,7 +143,6 @@ query ClosedFulfillmentOrders($locationId: ID!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Revenue by Location Report           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

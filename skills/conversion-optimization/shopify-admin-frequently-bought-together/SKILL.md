@@ -2,27 +2,30 @@
 name: shopify-admin-frequently-bought-together
 role: conversion-optimization
 description: "Read-only: mines order history to find product pairs and triplets frequently purchased together, generating cross-sell and bundle recommendations."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - products:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Analyzes order history to discover which products are frequently purchased together. Calculates co-occurrence frequency, lift scores, and confidence metrics to generate data-driven cross-sell recommendations and bundle candidates. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_products`
-- API scopes: `read_orders`, `read_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | days_back | integer | no | 180 | Order lookback window |
 | min_support | integer | no | 3 | Minimum co-occurrence count to report a pair |
 | max_results | integer | no | 25 | Maximum product pairs to return |
@@ -35,6 +38,9 @@ Analyzes order history to discover which products are frequently purchased toget
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `lineItems { product { id, title } }`, pagination cursor
@@ -105,7 +111,6 @@ query ProductDetails($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Frequently Bought Together           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

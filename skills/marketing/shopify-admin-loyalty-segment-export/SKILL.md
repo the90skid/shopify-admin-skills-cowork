@@ -2,27 +2,30 @@
 name: shopify-admin-loyalty-segment-export
 role: marketing
 description: "Identify high-LTV customers by order count and lifetime spend, tag them, and export a loyalty-ready contact list."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - tagsAdd:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Segments your highest-value customers by order count and total lifetime spend, tags them in Shopify, and exports a list ready for loyalty program enrollment or VIP campaign targeting. This skill handles the data layer; managing rewards points or sending loyalty emails requires an external tool.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_customers`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | format | string | no | human | `human` or `json` |
 | dry_run | bool | no | false | Preview without tagging |
 | min_orders | integer | no | 3 | Minimum lifetime order count |
@@ -30,6 +33,9 @@ Segments your highest-value customers by order count and total lifetime spend, t
 | tag | string | no | loyalty-vip | Tag applied to qualifying customers |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** filter `orders_count:>=(min_orders)`, `total_spent:>=(min_spend)`, `first: 250`, pagination
@@ -87,7 +93,6 @@ mutation TagsAdd($id: ID!, $tags: [String!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Loyalty Segment Export               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

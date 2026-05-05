@@ -2,27 +2,30 @@
 name: shopify-admin-compare-at-price-cleanup
 role: merchandising
 description: "Removes stale compareAtPrice values where current price >= compareAtPrice (no real discount) or compareAtPrice has been set for over a configurable age threshold."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - productVariants:query
   - productVariantsBulkUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Identifies variants with a `compareAtPrice` that no longer represents a genuine discount and clears it, so storefront strikethrough pricing reflects real savings rather than legacy noise. Two conditions are flagged: (a) `compareAtPrice <= price` (no discount, often left over from a price increase), and (b) `compareAtPrice` set for longer than `max_age_days` (stale "always on sale" optics that hurt long-term price perception and can violate advertising standards in some regions). Defaults to dry-run.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,write_products`
-- API scopes: `read_products`, `write_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | dry_run | bool | no | true | Preview the cleanup without executing mutations |
 | clean_no_discount | bool | no | true | Clear `compareAtPrice` when `price >= compareAtPrice` |
 | clean_stale | bool | no | true | Clear `compareAtPrice` set longer than `max_age_days` |
@@ -36,6 +39,9 @@ Identifies variants with a `compareAtPrice` that no longer represents a genuine 
 > ⚠️ Step 2 executes `productVariantsBulkUpdate` mutations that overwrite `compareAtPrice` to null. The original strikethrough value is not preserved server-side — record the dry-run CSV before committing if you want a restore path. Always start with `dry_run: true` and review the CSV before running with `dry_run: false`.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `productVariants` — query
    **Inputs:** `first: 250`, `query: <built from collection_id or tag_filter>`, select `price`, `compareAtPrice`, `updatedAt`, `product { id, title, vendor }`, `sku`, pagination cursor
@@ -103,7 +109,6 @@ mutation ClearCompareAtPrice($productId: ID!, $variants: [ProductVariantsBulkInp
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Compare-At Price Cleanup             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

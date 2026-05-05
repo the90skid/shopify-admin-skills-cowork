@@ -2,27 +2,30 @@
 name: shopify-admin-cancel-and-restock
 role: fulfillment-ops
 description: "Cancel an unfulfilled order, optionally restock inventory, and optionally notify the customer — all in a single validated workflow."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - order:query
   - orderCancel:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Cancels an unfulfilled or partially-unfulfilled order with configurable restock, refund, and customer notification options — without navigating the Shopify admin. Useful for fraud exception handling, out-of-stock cancellations, or customer-requested cancellations before dispatch. Cannot cancel orders that are already fully fulfilled.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `write_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | order_id | string | yes | — | GID of the order (e.g., `gid://shopify/Order/12345`) |
@@ -37,6 +40,9 @@ Cancels an unfulfilled or partially-unfulfilled order with configurable restock,
 > ⚠️ Steps 2 executes `orderCancel` which is irreversible. A cancelled order cannot be reopened. If `refund: true`, any captured payment is automatically refunded. If `restock: true`, inventory quantities are immediately restored. Run with `dry_run: true` to verify the order state and confirm it is cancellable before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `order` — query
    **Inputs:** `id: <order_id>`
@@ -132,7 +138,6 @@ mutation OrderCancel(
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: cancel-and-restock                   ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

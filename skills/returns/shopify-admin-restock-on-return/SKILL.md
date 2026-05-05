@@ -2,27 +2,30 @@
 name: shopify-admin-restock-on-return
 role: returns
 description: "For approved/closed returns, restocks inventory at the return location by adjusting on-hand quantities for each returned line item."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - returns:query
   - inventoryAdjustQuantities:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Walks through recently approved or closed returns and restocks inventory for each `returnLineItem` whose physical item has been received and inspected. Adjusts the `available` quantity at the return's destination location using `inventoryAdjustQuantities` with reason `restock` and a `referenceDocumentUri` linking to the return record. Use when warehouse processing posts in a separate system from Shopify, or when manual restock has been deferred and needs a clean catch-up run.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_returns,write_inventory,read_locations`
-- API scopes: `read_returns`, `read_inventory`, `write_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_returns`, `read_inventory`, `write_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | true | Preview restock plan without executing inventory mutations |
 | days_back | integer | no | 14 | Lookback window for recently completed returns |
@@ -36,6 +39,9 @@ Walks through recently approved or closed returns and restocks inventory for eac
 > ⚠️ Step 2 executes `inventoryAdjustQuantities` mutations that immediately add units to the `available` count at the destination location. Restocking damaged or unsalable inventory inflates available stock and causes oversells. The default is `dry_run: true` — review the preview CSV to confirm each return line item is genuinely sellable before committing. By default `skip_defective: true` excludes `DEFECTIVE` returns. Each restock posts a permanent entry in Shopify's inventory activity log with reason `restock`.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `returns` — query
    **Inputs:** `query: "status:<return_status> updated_at:>='<NOW - days_back days>'"` (use `updated_at:>='...'` only when `return_status:ANY`), `first: 250`, select `id`, `name`, `status`, `closedAt`, `order { id name }`, `returnLineItems(first: 50) { quantity, returnReason, fulfillmentLineItem { lineItem { variant { id sku inventoryItem { id tracked } } } } }`, `reverseFulfillmentOrders(first: 5) { reverseDeliveries(first: 5) { deliverable { ... on ReverseDeliveryShippingDeliverable { label { ... } } } }, location { id name } }`, pagination cursor
@@ -125,7 +131,6 @@ mutation RestockOnReturn($input: InventoryAdjustQuantitiesInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Restock on Return                    ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

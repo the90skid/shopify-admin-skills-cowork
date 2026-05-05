@@ -2,7 +2,7 @@
 name: shopify-admin-file-storage-audit
 role: store-management
 description: "Read-only: lists every file in CDN storage, cross-references usage on products, pages, and articles, and flags orphaned/unreferenced assets."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - files:query
@@ -10,21 +10,24 @@ graphql_operations:
   - pages:query
   - articles:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Inventories every file (image, video, generic file) in the store's CDN library and cross-references each one against products, pages, and blog articles to determine whether it is actually used. Orphaned files inflate storage usage, slow back-office search, and obscure brand assets. Read-only — no mutations. Provides the data foundation for a manual cleanup or archival workflow.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_files,read_products,read_content`
-- API scopes: `read_files`, `read_products`, `read_content`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_files`, `read_products`, `read_content`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | min_age_days | integer | no | 30 | Only flag files older than this (avoid newly uploaded assets in flight) |
 | file_types | string | no | all | Filter: `IMAGE`, `VIDEO`, `GENERIC_FILE`, or `all` |
 | sample_orphans | integer | no | 25 | Number of orphaned files to print in the human-format completion banner |
@@ -35,6 +38,9 @@ Inventories every file (image, video, generic file) in the store's CDN library a
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. No files are deleted by this skill; it produces a report only.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `files` — query
    **Inputs:** `first: 250`, select `id`, `alt`, `createdAt`, `fileStatus`, `__typename`, plus typename-specific URL/size fields, pagination cursor
@@ -136,7 +142,6 @@ query ArticleBodyReferences($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: File Storage Audit                   ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

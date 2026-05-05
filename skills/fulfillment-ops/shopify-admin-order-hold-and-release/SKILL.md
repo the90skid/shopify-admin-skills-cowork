@@ -2,22 +2,26 @@
 name: shopify-admin-order-hold-and-release
 role: fulfillment-ops
 description: "Place or release fulfillment holds on open orders in batch — with a stated reason and optional expiry date."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - fulfillmentOrderHold:mutation
   - fulfillmentOrderReleaseHold:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Places or releases holds on fulfillment orders programmatically without navigating the Shopify admin. Useful for fraud review queues, inventory shortages, or payment verification workflows. Works on orders with fulfillment orders in `OPEN` status.
 
 ## Prerequisites
-- `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `write_merchant_managed_fulfillment_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_merchant_managed_fulfillment_orders`
 
 ## Parameters
 Universal (store, format, dry_run) + skill-specific:
@@ -38,6 +42,9 @@ Universal (store, format, dry_run) + skill-specific:
 > ⚠️ Step 2 places or releases holds on live fulfillment orders. Holding an order prevents it from being fulfilled and may delay delivery. Releasing a hold allows fulfillment to proceed immediately. Run with `dry_run: true` to preview which orders will be affected before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `order_ids` list or `query_filter` string; fetch each order's `fulfillmentOrders` to get the fulfillment order IDs and current `status`
@@ -127,7 +134,6 @@ mutation FulfillmentOrderReleaseHold($id: ID!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: order-hold-and-release               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

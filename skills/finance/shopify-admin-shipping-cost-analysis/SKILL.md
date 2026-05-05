@@ -2,27 +2,30 @@
 name: shopify-admin-shipping-cost-analysis
 role: finance
 description: "Read-only: aggregates shipping revenue charged to customers vs. actual shipping line costs by carrier and method."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Compares the shipping amount charged to customers against the actual shipping cost recorded on orders, broken down by carrier and shipping method. Identifies where shipping is being subsidized (charged less than cost) or over-charged. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 - Actual shipping costs are only available if recorded via the Shopify Admin API or carrier-calculated shipping; manually entered orders may lack cost data.
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window |
 | format | string | no | human | Output format: `human` or `json` |
 
@@ -31,6 +34,9 @@ Compares the shipping amount charged to customers against the actual shipping co
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "financial_status:paid created_at:>='<NOW - days_back days>'"`, `first: 250`, select `shippingLines { title, discountedPriceSet, originalPriceSet, carrierIdentifier }`, pagination cursor
@@ -96,7 +102,6 @@ query ShippingCostAnalysis($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Shipping Cost Analysis               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

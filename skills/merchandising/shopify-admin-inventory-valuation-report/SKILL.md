@@ -2,29 +2,32 @@
 name: shopify-admin-inventory-valuation-report
 role: merchandising
 description: "Read-only: calculates total inventory value (quantity × cost) per location and per vendor for accounting and insurance."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - inventoryItems:query
   - locations:query
   - productVariants:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates the total inventory value (on-hand quantity × unit cost) broken down by location and vendor. Used for periodic balance sheet reconciliation, insurance valuation, and cost-of-goods reporting. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,read_inventory`
-- API scopes: `read_products`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_inventory`
 - Unit costs must be set on inventory items for accurate valuation (variants without cost are included at $0)
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | breakdown | string | no | both | Breakdown level: `location`, `vendor`, or `both` |
 | include_zero_cost | bool | no | true | Include items with no cost set (shown as $0) |
 | format | string | no | human | Output format: `human` or `json` |
@@ -34,6 +37,9 @@ Calculates the total inventory value (on-hand quantity × unit cost) broken down
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `locations` — query
    **Inputs:** `first: 50`, active locations only
@@ -132,7 +138,6 @@ query InventoryLevelsByLocation($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Inventory Valuation Report           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

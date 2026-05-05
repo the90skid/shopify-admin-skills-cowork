@@ -2,27 +2,30 @@
 name: shopify-admin-collection-membership-audit
 role: merchandising
 description: "Read-only: lists orphan products (in zero collections) and over-collected products for catalog hygiene."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - collections:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Identifies products that are not in any collection ("orphans" — invisible in store navigation) and products that appear in an unusually high number of collections ("over-collected" — potential merchandising noise). Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products`
-- API scopes: `read_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | max_collections | integer | no | 10 | Flag products in more than this many collections |
 | status_filter | string | no | active | Product status to scan: `active`, `draft`, or `all` |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Identifies products that are not in any collection ("orphans" — invisible in s
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `query: "status:<status_filter>"`, `first: 250`, select `collections { edges { node { id } } }`, pagination cursor
@@ -103,7 +109,6 @@ query CollectionOverview($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Collection Membership Audit          ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

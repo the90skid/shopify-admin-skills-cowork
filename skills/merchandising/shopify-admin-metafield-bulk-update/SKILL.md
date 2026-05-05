@@ -2,29 +2,32 @@
 name: shopify-admin-metafield-bulk-update
 role: merchandising
 description: "Bulk set or delete metafields on products, variants, or customers filtered by tag or collection."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - metafieldsSet:mutation
   - metafieldsDelete:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries products (or variants, or customers) matching a filter and bulk-sets or bulk-deletes metafield values. Used for structured data updates like material composition, care instructions, product specifications, or custom attributes that power storefront features.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,write_products`
-- API scopes: `read_products`, `write_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_products`
 - Metafield namespace and key must already exist or be created on first set
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | resource_type | string | no | product | Resource to update: `product`, `variant`, or `customer` |
 | filter | string | yes | — | Filter query (e.g., `tag:summer-2026`, `vendor:Nike`) |
 | namespace | string | yes | — | Metafield namespace (e.g., `custom`) |
@@ -40,6 +43,9 @@ Queries products (or variants, or customers) matching a filter and bulk-sets or 
 > ⚠️ `metafieldsSet` overwrites existing metafield values — there is no merge. `metafieldsDelete` permanently removes the metafield value from the resource. Run with `dry_run: true` to confirm the affected product list and verify namespace/key are correct before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `query: <filter>`, `first: 250`, select metafield values for the target namespace/key, pagination cursor
@@ -129,7 +135,6 @@ mutation MetafieldsDelete($metafields: [MetafieldIdentifierInput!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Metafield Bulk Update                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

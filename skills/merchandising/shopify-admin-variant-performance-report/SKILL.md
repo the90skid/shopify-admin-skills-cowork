@@ -2,27 +2,30 @@
 name: shopify-admin-variant-performance-report
 role: merchandising
 description: "Rank every product variant by revenue, units sold, and refund rate, then cross-reference against current inventory to identify dead weight vs. top performers."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - productVariants:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Goes beyond product-level revenue by ranking every individual variant (size, color, option combination) on revenue, units sold, and refund rate, then joining against live inventory levels. Reveals which specific SKUs are driving the business and which are tying up capital on the shelf. Read-only — no mutations are executed.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `read_products` (validator-confirmed: orders query traverses variant→product graph)
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products` (validator-confirmed: orders query traverses variant→product graph)
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | date_range_start | string | yes | — | Start date in ISO 8601 (e.g., `2025-01-01`) |
@@ -32,6 +35,9 @@ Goes beyond product-level revenue by ranking every individual variant (size, col
 | min_units | integer | no | 1 | Exclude variants with fewer than N units sold in the period |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `first: 250`, `query: "created_at:>='<date_range_start>' created_at:<='<date_range_end>'"`, pagination cursor; select `lineItems` with `variant { id, sku, title, selectedOptions }`, `quantity`, `originalTotalSet`; and `refunds.refundLineItems` with variant id and `subtotalSet`
@@ -129,7 +135,6 @@ query VariantInventorySnapshot($first: Int!, $after: String, $query: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: variant-performance-report           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

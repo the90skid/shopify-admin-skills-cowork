@@ -2,26 +2,29 @@
 name: shopify-admin-gift-card-balance-report
 role: finance
 description: "Read-only: lists all active gift cards with remaining balance, expiry, and last-used date for liability tracking."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - giftCards:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all active and partially-redeemed gift cards and reports the total outstanding gift card liability (unredeemed balances). Used for balance sheet reporting, accounting for deferred revenue, and auditing unused gift cards before they expire. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_gift_cards`
-- API scopes: `read_gift_cards`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_gift_cards`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | status | string | no | enabled | Filter by status: `enabled`, `disabled`, or `all` |
 | expiring_within_days | integer | no | 30 | Flag gift cards expiring within this many days |
 | format | string | no | human | Output format: `human` or `json` |
@@ -31,6 +34,9 @@ Queries all active and partially-redeemed gift cards and reports the total outst
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `giftCards` — query
    **Inputs:** `query: "status:<status>"`, `first: 250`, pagination cursor
@@ -86,7 +92,6 @@ query GiftCardBalances($query: String, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Gift Card Balance Report             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

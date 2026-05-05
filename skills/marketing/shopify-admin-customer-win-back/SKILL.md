@@ -2,27 +2,30 @@
 name: shopify-admin-customer-win-back
 role: marketing
 description: "Identify customers who have not ordered in N days, export a re-engagement list, and tag them in Shopify."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - tagsAdd:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Segments lapsed customers — those who placed at least one order but have not purchased again within a configurable window — and tags them for re-engagement. This skill handles the Shopify-native data layer; sending re-engagement emails requires an external tool.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_customers`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | format | string | no | human | `human` or `json` |
 | dry_run | bool | no | false | Preview without tagging |
 | inactive_days | integer | no | 90 | Days since last order to qualify as lapsed |
@@ -31,6 +34,9 @@ Segments lapsed customers — those who placed at least one order but have not p
 | max_customers | integer | no | 500 | Maximum customers to process per run |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** filter `last_order_date:<(NOW - inactive_days days)`, `orders_count:>=(min_orders)`, `first: 250`, pagination
@@ -97,7 +103,6 @@ mutation TagsAdd($id: ID!, $tags: [String!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Customer Win-Back                    ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

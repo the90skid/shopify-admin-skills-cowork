@@ -2,26 +2,29 @@
 name: shopify-admin-top-product-performance
 role: conversion-optimization
 description: "Rank products by revenue, units sold, and refund rate over a date range by aggregating order line items."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Ranks products by revenue, units sold, and refund rate for a given date range by aggregating order line items and refund line items across all orders in the period. Useful for identifying top performers and products with high refund rates. Read-only — no mutations are executed.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | date_range_start | string | yes | — | Start date in ISO 8601 (e.g., `2025-01-01`) |
@@ -30,6 +33,9 @@ Ranks products by revenue, units sold, and refund rate for a given date range by
 | sort_by | string | no | revenue | Ranking metric: `revenue`, `units`, or `refund_rate` |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `first: 250`, `query: "created_at:>='<date_range_start>' created_at:<='<date_range_end>'"`, pagination cursor
@@ -101,7 +107,6 @@ query OrdersForProductPerformance($first: Int!, $after: String, $query: String) 
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: top-product-performance              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

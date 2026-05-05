@@ -2,27 +2,30 @@
 name: shopify-admin-traffic-by-page-report
 role: conversion-optimization
 description: "Report sessions, conversion rate, and bounce rate for every product and collection page using Shopify's analytics API — surfaces which pages earn eyeballs and which convert them."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - shopifyqlQuery:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries Shopify's built-in analytics engine (ShopifyQL) to surface session-level traffic data scoped to product and collection pages. Shows which pages are attracting the most traffic, how many sessions convert to orders, and where visitors are bouncing — ready input for SEO prioritisation, merchandising focus, and A/B test targeting. Read-only — no mutations are executed.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_reports`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_reports`
 - Shopify plan: ShopifyQL analytics is available on Basic and above; availability of `sessions` as a data source requires Shopify plan or higher
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | days_back | integer | no | 30 | Lookback window in days (e.g., `30` = last 30 days) |
@@ -31,6 +34,9 @@ Queries Shopify's built-in analytics engine (ShopifyQL) to surface session-level
 | sort_by | string | no | sessions | Ranking metric: `sessions`, `conversion_rate`, or `bounce_rate` |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `shopifyqlQuery` — query (all landing pages)
    **Inputs:** ShopifyQL string `FROM sessions SHOW sessions, conversion_rate GROUP BY landing_page_path SINCE -<days_back>d UNTIL today ORDER BY sessions DESC LIMIT 250`; `sessions` and `conversion_rate` are the confirmed available metrics for this data source
@@ -85,7 +91,6 @@ Then filter rows in-memory:
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: traffic-by-page-report               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,27 +2,30 @@
 name: shopify-admin-draft-order-cleanup
 role: store-management
 description: "Finds stale draft orders older than N days and optionally deletes them to reduce admin clutter."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - draftOrders:query
   - draftOrderDelete:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries open draft orders older than a configurable age and optionally deletes them. Draft orders accumulate from abandoned B2B quotes, incomplete manual orders, or old integrations and clutter the admin. Stale drafts also inflate pending revenue metrics.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,write_orders`
-- API scopes: `read_orders`, `write_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | older_than_days | integer | no | 30 | Delete drafts older than this many days |
 | dry_run | bool | no | true | Preview drafts to delete without executing mutation |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Queries open draft orders older than a configurable age and optionally deletes t
 > ⚠️ `draftOrderDelete` permanently deletes draft orders. Deleted drafts cannot be recovered. Run with `dry_run: true` to review the list before committing. Check that no stale drafts represent active B2B quotes awaiting customer approval before deleting.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `draftOrders` — query
    **Inputs:** `query: "status:open created_at:<='<NOW - older_than_days days>'"`, `first: 250`, pagination cursor
@@ -100,7 +106,6 @@ mutation DraftOrderDelete($input: DraftOrderDeleteInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Draft Order Cleanup                  ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

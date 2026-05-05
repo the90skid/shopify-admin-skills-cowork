@@ -2,27 +2,30 @@
 name: shopify-admin-automated-order-tagger
 role: order-intelligence
 description: "Mutation: applies tags to orders based on configurable rules (geography, value, product type, risk level, customer tier)."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - orderUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Applies tags to orders based on configurable rule sets — geography-based (domestic/international), value-based (high-value, low-value), product-type-based, customer-tier-based, or custom conditions. Supports dry-run mode for safe preview.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,write_orders`
-- API scopes: `read_orders`, `write_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | rules | object[] | yes | — | Array of tagging rules (see Rules Format below) |
 | days_back | integer | no | 7 | Lookback window for orders to tag |
 | skip_tagged | boolean | no | true | Skip orders that already have the target tag |
@@ -55,6 +58,9 @@ Each rule has a `condition` and a `tag`:
 > ⚠️ Mutation skill — always run with `dry_run: true` first to preview tag assignments before applying.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `id`, `name`, `tags`, `totalPriceSet`, `shippingAddress { countryCode }`, `customer { numberOfOrders }`, `displayFinancialStatus`, `displayFulfillmentStatus`, `riskLevel`, `lineItems { product { productType } }`, `discountCodes`, pagination cursor
@@ -124,7 +130,6 @@ mutation TagOrder($input: OrderInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Automated Order Tagger               ║
-║  Store: <store domain>                       ║
 ║  Mode: <DRY RUN | LIVE>                      ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝

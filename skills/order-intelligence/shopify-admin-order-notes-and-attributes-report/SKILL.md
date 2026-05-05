@@ -2,26 +2,29 @@
 name: shopify-admin-order-notes-and-attributes-report
 role: order-intelligence
 description: "Read-only: extracts and tabulates order notes and custom attributes for ops review of gift messages and special instructions."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries recent orders and extracts order-level notes and custom line item attributes (e.g., gift messages, personalization text, special instructions, engraving text). Produces a report for ops and fulfillment teams to act on special requests during pick/pack. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 1 | Lookback window (default: last 24 hours for daily ops use) |
 | attribute_keys | array | no | [] | Specific line item attribute keys to extract (e.g., `["gift_message", "engraving"]`); empty = all |
 | only_with_notes | bool | no | false | Only include orders that have a note or attributes |
@@ -32,6 +35,9 @@ Queries recent orders and extracts order-level notes and custom line item attrib
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `note`, `customAttributes`, `lineItems { customAttributes }`, pagination cursor
@@ -96,7 +102,6 @@ query OrderNotesAndAttributes($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Order Notes and Attributes Report    ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

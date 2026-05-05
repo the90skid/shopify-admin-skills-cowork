@@ -2,27 +2,30 @@
 name: shopify-admin-return-initiation
 role: customer-support
 description: "Create a formal Shopify Return record for an order, specifying line items, quantities, and return reason — the first step in the native returns workflow."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - order:query
   - returnCreate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Initiates a formal Shopify Return on a delivered order — specifying which line items to return, quantities, and reason. This creates the return record in Shopify's native returns system (distinct from simply issuing a refund). Used by support agents when a customer contacts them to return delivered items. The return record enables tracking, warehouse inspection, and exchange/refund resolution downstream. Note: `returnCreate` requires the order to be in `FULFILLED` status. For orders that haven't shipped yet, use `cancel-and-restock` instead. For already-returned items needing a refund, use `refund-and-reorder`.
 
 ## Prerequisites
-- `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `write_returns`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_returns`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | order_id | string | yes | — | GID of the order (e.g., `gid://shopify/Order/12345`) |
@@ -35,6 +38,9 @@ Initiates a formal Shopify Return on a delivered order — specifying which line
 > ⚠️ Step 2 executes `returnCreate` which creates a formal return record and — if `notify_customer: true` — sends an email to the customer. This is appropriate only after verifying with the customer that a return is expected. Run with `dry_run: true` to preview the return line items and quantities before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `order` — query
    **Inputs:** `id: <order_id>`
@@ -116,7 +122,6 @@ mutation ReturnCreate($returnInput: ReturnInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: return-initiation                    ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

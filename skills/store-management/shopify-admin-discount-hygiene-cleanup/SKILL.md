@@ -2,27 +2,30 @@
 name: shopify-admin-discount-hygiene-cleanup
 role: store-management
 description: "Finds expired, zero-usage, or duplicate discount codes and optionally deactivates or deletes them."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - discountNodes:query
   - discountCodeDelete:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Audits the discount catalog for expired codes, codes with zero redemptions, and duplicate code prefixes. Discount sprawl accumulates over months of campaigns and makes the admin difficult to navigate. Optionally deletes flagged codes. Replaces manual discount cleanup and builds on the `discount-ab-analysis` skill with a write step.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_discounts,write_discounts`
-- API scopes: `read_discounts`, `write_discounts`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_discounts`, `write_discounts`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | flag_expired | bool | no | true | Flag/delete discounts past their end date |
 | flag_zero_usage | bool | no | true | Flag/delete discounts with 0 redemptions older than N days |
 | zero_usage_min_age_days | integer | no | 30 | Age threshold for zero-usage flags |
@@ -34,6 +37,9 @@ Audits the discount catalog for expired codes, codes with zero redemptions, and 
 > ⚠️ `discountCodeDelete` permanently removes discount codes. Deleted codes cannot be recovered. Customers who received a deleted code will find it invalid. Run with `dry_run: true` to review the flagged list before committing. Always check that expired codes are not referenced in active email campaigns before deleting.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `discountNodes` — query
    **Inputs:** `first: 250`, select `discount { ... on DiscountCodeBasic { codes, usageLimit, asyncUsageCount, endsAt, status } }`, pagination cursor
@@ -119,7 +125,6 @@ mutation DiscountCodeDelete($id: ID!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Discount Hygiene Cleanup             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

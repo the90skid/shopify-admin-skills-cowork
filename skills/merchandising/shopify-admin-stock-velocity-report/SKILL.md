@@ -2,15 +2,19 @@
 name: shopify-admin-stock-velocity-report
 role: merchandising
 description: "Read-only: calculates days-of-supply and sell-through rate per SKU and location for replenishment planning."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - productVariants:query
   - orders:query
   - inventoryItems:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates two critical replenishment metrics for every stocked SKU:
@@ -20,14 +24,13 @@ Calculates two critical replenishment metrics for every stocked SKU:
 Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,read_orders,read_inventory`
-- API scopes: `read_products`, `read_orders`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_orders`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Sales window for velocity calculation |
 | dos_alert_threshold | integer | no | 14 | Flag SKUs with fewer than this many days of supply |
 | vendor_filter | string | no | — | Optional vendor to scope report |
@@ -38,6 +41,9 @@ Read-only — no mutations.
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `productVariants` — query
    **Inputs:** `first: 250`, select `sku`, `inventoryQuantity`, `inventoryItem { id }`, pagination cursor
@@ -137,7 +143,6 @@ query InventoryItemDetails($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Stock Velocity Report                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

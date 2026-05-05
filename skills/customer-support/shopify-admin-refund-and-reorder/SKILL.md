@@ -2,28 +2,31 @@
 name: shopify-admin-refund-and-reorder
 role: customer-support
 description: "Process a full or partial refund on an order and optionally create a replacement draft order for the customer."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - order:query
   - refundCreate:mutation
   - draftOrderCreate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Processes refunds and creates replacement orders without navigating the Shopify admin UI. This skill handles both the refund and the optional replacement draft order in a single workflow.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `write_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | order_id | string | yes | — | GID of the order (e.g., `gid://shopify/Order/12345`) |
@@ -37,6 +40,9 @@ Processes refunds and creates replacement orders without navigating the Shopify 
 > ⚠️ Steps 2 and 3 execute irreversible financial mutations. `refundCreate` cannot be undone — once a refund is processed, the payment cannot be re-captured. `draftOrderCreate` creates a new draft order that must be invoiced and paid separately. Run with `dry_run: true` to verify the refund line items and amounts before committing. Verify `refundableQuantity` per line item from Step 1 before proceeding.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `order` — query
    **Inputs:** `id: <order_id>`
@@ -157,7 +163,6 @@ mutation DraftOrderCreate($input: DraftOrderInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: refund-and-reorder                   ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

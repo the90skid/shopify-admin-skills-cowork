@@ -2,28 +2,31 @@
 name: shopify-admin-customer-spend-tier-tagger
 role: customer-ops
 description: "Calculates lifetime spend per customer and applies tier tags (Bronze/Silver/Gold/Platinum) based on configurable thresholds."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - orders:query
   - tagsAdd:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all customers, calculates their lifetime spend using order history, and assigns a spend-tier tag (Bronze/Silver/Gold/Platinum by default). Enables VIP segmentation for loyalty programs, exclusive offers, and CX prioritization without a third-party loyalty app. Extends the existing `loyalty-segment-export` skill with a write step.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,read_orders,write_customers`
-- API scopes: `read_customers`, `read_orders`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `read_orders`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | tiers | object | no | see below | Spend thresholds per tier (in store currency) |
 | tag_prefix | string | no | tier | Tag prefix (e.g., `tier:bronze`, `tier:silver`) |
 | remove_old_tiers | bool | no | true | Remove existing tier tags before applying new ones |
@@ -43,6 +46,9 @@ platinum: $5,000+
 > ⚠️ `tagsAdd` adds tags to customer records visible to staff and used by marketing segments. If `remove_old_tiers: true`, existing tier tags matching `tag_prefix` are removed before new ones are applied. Run with `dry_run: true` to review the tier distribution before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `first: 250`, select `id`, `amountSpent`, pagination cursor
@@ -131,7 +137,6 @@ mutation TagsAdd($id: ID!, $tags: [String!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Customer Spend Tier Tagger           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

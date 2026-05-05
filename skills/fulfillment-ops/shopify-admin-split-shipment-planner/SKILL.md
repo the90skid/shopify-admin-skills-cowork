@@ -2,28 +2,31 @@
 name: shopify-admin-split-shipment-planner
 role: fulfillment-ops
 description: "Splits a multi-line fulfillment order into separate shipments for partial or location-specific shipping."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - fulfillmentOrders:query
   - fulfillmentOrderSplit:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Splits a fulfillment order containing multiple line items into two or more separate fulfillment orders, each of which can be shipped independently with its own tracking number. Used when items in an order ship from different locations, on different dates, or require different carriers. Replaces manual split-shipment handling in Shopify Admin.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,write_fulfillments`
-- API scopes: `read_orders`, `write_fulfillments`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_fulfillments`
 - Target fulfillment order must be in `OPEN` status
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | fulfillment_order_id | string | yes | — | GID of the fulfillment order to split |
 | split_groups | array | yes | — | List of `{line_item_ids: [], quantities: []}` defining each shipment group |
 | dry_run | bool | no | true | Preview split without executing mutation |
@@ -34,6 +37,9 @@ Splits a fulfillment order containing multiple line items into two or more separ
 > ⚠️ `fulfillmentOrderSplit` is irreversible — a split fulfillment order cannot be merged back. The original fulfillment order is replaced by multiple new ones. Run with `dry_run: true` to confirm the intended groupings before committing. Ensure all `line_item_ids` in `split_groups` belong to the target fulfillment order.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `fulfillmentOrders` — query
    **Inputs:** Query for the specific fulfillment order by order ID, filter by `status: OPEN`
@@ -118,7 +124,6 @@ mutation FulfillmentOrderSplit($fulfillmentOrderId: ID!, $fulfillmentOrderLineIt
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Split Shipment Planner               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

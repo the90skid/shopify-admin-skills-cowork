@@ -2,27 +2,30 @@
 name: shopify-admin-churn-risk-scorer
 role: customer-ops
 description: "Read-only: scores customers by churn probability based on purchase recency, frequency decay, and expected repurchase intervals."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Predicts which customers are at risk of churning by analyzing their purchase patterns against their historical buying frequency. Calculates an expected next-purchase date for each repeat customer, then scores churn risk based on how overdue they are. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_customers`
-- API scopes: `read_orders`, `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | days_back | integer | no | 365 | Historical window for purchase pattern analysis |
 | min_orders | integer | no | 2 | Minimum orders to calculate purchase interval (need 2+ for frequency) |
 | risk_threshold | float | no | 1.5 | Multiplier of avg purchase interval before flagging as at-risk |
@@ -47,6 +50,9 @@ For each customer with `min_orders` or more purchases:
 5. **Customer Lifetime Value (CLV)** = total spend / customer age in years × expected remaining years
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `createdAt`, `totalPriceSet`, `customer { id, email, firstName, lastName }`, pagination cursor
@@ -117,7 +123,6 @@ query AtRiskCustomers($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Churn Risk Scorer                    ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

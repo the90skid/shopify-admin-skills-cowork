@@ -2,28 +2,31 @@
 name: shopify-admin-customer-merge
 role: customer-support
 description: "Merges duplicate customer records: invokes Shopify's native customer merge API where supported, otherwise consolidates the loser record's tags and notes into the winner via customerUpdate."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customer:query
   - customerMerge:mutation
   - customerUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Resolves duplicate customer records identified by `duplicate-customer-finder`. Where the Shopify Admin API exposes `customerMerge` (a native merge that moves orders, addresses, subscriptions, and metafields onto a winner record), this skill calls it directly. When `customerMerge` is unavailable or fails for the given account pair, the skill falls back to consolidating searchable metadata — tags, notes, marketing consent — onto the winner via `customerUpdate`, then writes a clear annotation to the loser record so staff can complete the merge manually in Shopify Admin.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,write_customers`
-- API scopes: `read_customers`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | true | Preview merge plan without executing mutations |
 | customer_winner_id | string | yes | — | GID of the customer record to keep (e.g., `gid://shopify/Customer/12345`) |
@@ -38,6 +41,9 @@ Resolves duplicate customer records identified by `duplicate-customer-finder`. W
 > ⚠️ Steps 2–4 execute mutations that modify customer records. `customerMerge` is irreversible — once orders and addresses are moved to the winner, the loser record is closed and cannot be split back. Run with `dry_run: true` first to confirm winner/loser GIDs and the merge plan. The default is `dry_run: true`. Always verify both records belong to the same human (matching email, phone, name) using `duplicate-customer-finder` output before committing. Do not merge a customer with active subscriptions or unfulfilled orders without confirming downstream systems will follow the new owner GID.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customer` — query (called twice: winner and loser)
    **Inputs:** `id: <customer_id>`, select `id`, `displayName`, `firstName`, `lastName`, `defaultEmailAddress { emailAddress }`, `phone`, `tags`, `note`, `numberOfOrders`, `amountSpent`, `emailMarketingConsent { marketingState }`, `smsMarketingConsent { marketingState }`, `addresses(first: 25) { id }`, `createdAt`
@@ -116,7 +122,6 @@ mutation CustomerConsolidate($input: CustomerInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Customer Merge                       ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

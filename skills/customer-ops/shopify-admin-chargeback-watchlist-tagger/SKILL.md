@@ -2,27 +2,30 @@
 name: shopify-admin-chargeback-watchlist-tagger
 role: customer-ops
 description: "Identifies customers with disputed or charged-back orders and tags their customer record for proactive review on future orders."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - customerUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans historical orders for any associated chargeback or dispute, then tags the customer record with `chargeback-history` (configurable). Future orders from these customers can be filtered or held for manual review by ops. Reduces repeated chargeback losses without blocking customers outright. Defaults to `dry_run: true`.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_customers,write_customers`
-- API scopes: `read_orders`, `read_customers`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_customers`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 730 | Historical window to scan for disputes (2 years default) |
 | watchlist_tag | string | no | chargeback-history | Tag applied to flagged customers |
 | include_won_disputes | bool | no | false | If false, only tag customers whose disputes were lost or are open |
@@ -34,6 +37,9 @@ Scans historical orders for any associated chargeback or dispute, then tags the 
 > ⚠️ `customerUpdate` modifies customer tags that are visible to staff and may drive segmentation rules. Tag a customer incorrectly and you may downgrade their experience or block their orders. Run with `dry_run: true` first and review the list before committing. Won disputes (where the merchant won) are excluded by default to avoid false positives.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>' chargeback_status:*"` (any chargeback state), `first: 250`, select `disputes { id, status, initiatedAs, finalizedOn }`, `customer { id, displayName, tags, defaultEmailAddress { emailAddress } }`, `totalPriceSet`, pagination cursor
@@ -120,7 +126,6 @@ mutation TagChargebackCustomer($input: CustomerInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Chargeback Watchlist Tagger          ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,27 +2,30 @@
 name: shopify-admin-exchange-vs-refund-ratio
 role: returns
 description: "Read-only: tracks what percentage of returns become exchanges vs. refunds vs. store credit — measures revenue recovery rate."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - returns:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Analyzes return resolutions to calculate the split between exchanges (revenue retained), store credit (revenue deferred), and refunds (revenue lost). Tracks this as a revenue recovery metric over time. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_returns`
-- API scopes: `read_orders`, `read_returns`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_returns`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window for return resolutions |
 | compare_days_back | integer | no | 0 | Optional prior period for comparison (0 = no comparison) |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Analyzes return resolutions to calculate the split between exchanges (revenue re
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `returns` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, pagination cursor
@@ -134,7 +140,6 @@ query OrdersInPeriod($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Exchange vs Refund Ratio             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

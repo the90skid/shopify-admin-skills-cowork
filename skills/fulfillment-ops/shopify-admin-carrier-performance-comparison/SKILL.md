@@ -2,27 +2,30 @@
 name: shopify-admin-carrier-performance-comparison
 role: fulfillment-ops
 description: "Read-only: compares delivery times and shipping costs across carriers used in fulfillments to inform carrier mix and contract decisions."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - fulfillments:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Aggregates fulfillments across recent orders, joins them to the shipping line on each order, and compares carriers head-to-head on (a) average transit days, (b) on-time rate (delivered before/at the customer-facing estimate), and (c) shipping cost per order. Surfaces which carrier is the right default per zone, route, or weight class. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 60 | Lookback window for fulfilled orders |
 | min_orders | integer | no | 10 | Minimum orders per carrier to include in comparison |
 | segment_by | string | no | — | Optional segmentation: `country`, `weight`, or `none` |
@@ -33,6 +36,9 @@ Aggregates fulfillments across recent orders, joins them to the shipping line on
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. Cost data uses the shipping line price the customer paid, not your negotiated carrier rate; if you want true cost variance you must overlay carrier invoices yourself.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "fulfillment_status:shipped created_at:>='<NOW - days_back days>'"`, `first: 250`, select `fulfillments { trackingInfo, createdAt, deliveredAt, inTransitAt }`, `shippingLine { carrierIdentifier, originalPriceSet, title }`, `totalWeight`, `shippingAddress`, pagination cursor
@@ -134,7 +140,6 @@ query FulfillmentDetail($id: ID!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Carrier Performance Comparison       ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

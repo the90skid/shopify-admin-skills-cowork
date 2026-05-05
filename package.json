@@ -1,48 +1,16 @@
 {
-  "name": "shopify-admin-skills",
+  "name": "shopify-admin-skills-cowork",
   "version": "1.0.0",
-  "description": "Community-maintained AI agent skills for operating Shopify stores \u2014 apps, workflows, optimization, and more",
-  "private": true,
+  "description": "Shopify Admin Skills for Claude Cowork + Official Shopify MCP Connector",
+  "author": "the90skid (forked from 40rty)",
   "license": "MIT",
-  "author": "40RTY-ai & Community Contributors",
   "repository": {
     "type": "git",
-    "url": "https://github.com/40RTY-ai/shopify-admin-skills.git"
+    "url": "https://github.com/the90skid/shopify-admin-skills-cowork"
   },
-  "homepage": "https://github.com/40RTY-ai/shopify-admin-skills#readme",
-  "bugs": {
-    "url": "https://github.com/40RTY-ai/shopify-admin-skills/issues"
-  },
-  "keywords": [
-    "shopify",
-    "ai-toolkit",
-    "mcp",
-    "skills",
-    "claude",
-    "cursor",
-    "codex",
-    "gemini",
-    "agents",
-    "ecommerce",
-    "store-management",
-    "merchant"
-  ],
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "packageManager": "pnpm@9.15.0",
+  "type": "module",
   "scripts": {
-    "validate": "node scripts/validate-skill.mjs",
-    "lint": "node scripts/lint-skills.mjs",
-    "build:catalog": "node scripts/build-catalog.mjs",
-    "scaffold": "bash templates/skill-scaffold.sh",
     "validate:index": "node scripts/validate-operations-index.mjs",
-    "test": "node scripts/validate-skill.mjs && node scripts/lint-skills.mjs"
-  },
-  "devDependencies": {
-    "gray-matter": "^4.0.3",
-    "glob": "^11.0.0",
-    "markdownlint": "^0.37.0",
-    "markdownlint-cli2": "^0.17.0"
+    "transform": "node scripts/transform.mjs"
   }
 }

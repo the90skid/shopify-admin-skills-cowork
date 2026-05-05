@@ -2,27 +2,30 @@
 name: shopify-admin-address-correction
 role: customer-support
 description: "Update the shipping address on an unfulfilled order before it ships."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - order:query
   - orderUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Corrects a shipping address on an unfulfilled order without navigating the Shopify admin UI. This skill is useful when a customer provides a correction after placing the order — for example, a typo in the street address or a wrong ZIP code. It replaces the manual address editing flow in the Shopify admin by executing the address update directly via the Admin API. The update must be performed before the order is fulfilled; this skill will abort with an error if the order has already been fulfilled or is partially fulfilled. Once fulfillment begins, the Shopify order record cannot be updated through this skill.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_orders`, `write_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | order_id | string | yes | — | GID of the order (e.g., `gid://shopify/Order/12345`) |
@@ -33,6 +36,9 @@ Corrects a shipping address on an unfulfilled order without navigating the Shopi
 > ⚠️ Step 2 executes `orderUpdate` which immediately changes the shipping address on record. If the order is already with a fulfillment partner, notify them separately — this skill updates the Shopify record only. This skill will abort with an error if `displayFulfillmentStatus` is not `UNFULFILLED`. Address changes cannot be applied to partially or fully fulfilled orders.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `order` — query
    **Inputs:** `id: <order_id>`
@@ -98,7 +104,6 @@ mutation OrderUpdate($input: OrderInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: address-correction                   ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,26 +2,29 @@
 name: shopify-admin-url-redirect-audit
 role: store-management
 description: "Read-only: lists all URL redirects, flags redirect chains (A→B→C) and duplicate targets."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - urlRedirects:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all URL redirects in the store and identifies redirect chains (where redirect target A is itself redirected to B), duplicate targets (multiple paths pointing to the same destination), and orphaned redirects (pointing to non-existent pages). Redirect chains add latency and hurt SEO. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_content`
-- API scopes: `read_content`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_content`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 
 ## Safety
@@ -29,6 +32,9 @@ Queries all URL redirects in the store and identifies redirect chains (where red
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `urlRedirects` — query
    **Inputs:** `first: 250`, pagination cursor
@@ -69,7 +75,6 @@ query URLRedirects($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: URL Redirect Audit                   ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

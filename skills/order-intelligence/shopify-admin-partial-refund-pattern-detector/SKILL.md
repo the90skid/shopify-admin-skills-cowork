@@ -2,26 +2,29 @@
 name: shopify-admin-partial-refund-pattern-detector
 role: order-intelligence
 description: "Read-only: surfaces orders with multiple partial refunds or unusually high partial-refund-to-total ratios that may indicate fraud, chronic complaints, or process gaps."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans recent orders, extracts every refund, and flags orders that have either (a) two or more partial refunds, or (b) a partial-refund-to-order-total ratio above a configurable threshold. These patterns frequently indicate friendly fraud (incremental claims), an unhappy repeat customer pattern, or a staff workflow gap (refunding piecemeal instead of issuing one full credit). Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 90 | Lookback window for orders to analyze |
 | min_partials | integer | no | 2 | Minimum number of partial refunds to flag an order |
 | ratio_threshold | float | no | 0.5 | Flag orders where total refunded / order total exceeds this ratio (still partial, i.e. below 1.0) |
@@ -33,6 +36,9 @@ Scans recent orders, extracts every refund, and flags orders that have either (a
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. Flagged orders are advisory — confirm with refund notes and customer history before taking action against a customer account.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>' financial_status:partially_refunded"`, `first: 250`, select `refunds { id, createdAt, totalRefundedSet, note }`, `totalPriceSet`, `customer`, pagination cursor
@@ -117,7 +123,6 @@ query PartialRefundPatterns($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Partial Refund Pattern Detector      ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

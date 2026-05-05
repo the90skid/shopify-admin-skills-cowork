@@ -2,27 +2,30 @@
 name: shopify-admin-discount-ab-analysis
 role: conversion-optimization
 description: "Compare redemption rates and revenue performance across two or more discount codes over a specified date range."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - discountNodes:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Compares how different discount codes perform against each other by redemption count and revenue generated. Useful for A/B testing promotional offers without a dedicated analytics app — provide two or more codes and a date range, and the skill queries Shopify for discount metadata and order revenue, then produces a side-by-side comparison table. Read-only: no mutations are executed.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_discounts`, `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_discounts`, `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | discount_codes | array | yes | — | Array of 2 or more discount code strings to compare (e.g., `["SAVE10", "WELCOME15"]`) |
@@ -30,6 +33,9 @@ Compares how different discount codes perform against each other by redemption c
 | date_range_end | string | yes | — | End date in ISO 8601 (e.g., `2025-01-31`) |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `discountNodes` — query
    **Inputs:** `first: 50`, `query: "code:<code>"` (one query per code in `discount_codes`)
@@ -125,7 +131,6 @@ query OrdersByDiscountCode($first: Int!, $after: String, $query: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: discount-ab-analysis                 ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

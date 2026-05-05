@@ -2,26 +2,29 @@
 name: shopify-admin-shipping-rate-audit
 role: fulfillment-ops
 description: "Read-only: walks every delivery profile and zone to verify each has at least one valid shipping rate, surfacing zones with no rates or only manual rates."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - deliveryProfiles:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Audits the shipping configuration for every delivery profile on the store. Surfaces (a) zones with zero shipping rates configured (causing checkout failures), (b) zones with only manual flat rates (no carrier-calculated rates, often a missed setup step), and (c) profiles with no zone coverage for known sales geographies. A misconfigured zone silently drops checkout conversions — this skill catches it before customers do. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_shipping`
-- API scopes: `read_shipping`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_shipping`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | profile_filter | string | no | — | Optional delivery profile name to scope the audit |
 | flag_manual_only | bool | no | true | Flag zones that have only manual rates (no carrier-calculated rates) |
 | flag_high_price | float | no | — | Optional: flag any rate above this price (likely typo or stale) |
@@ -32,6 +35,9 @@ Audits the shipping configuration for every delivery profile on the store. Surfa
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. The skill reads delivery configuration only; it does not change any shipping behavior.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `deliveryProfiles` — query
    **Inputs:** `first: 50`, select `profileLocationGroups`, `profileItems`, `name`, `default`, pagination cursor
@@ -142,7 +148,6 @@ query DeliveryProfilesAudit($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Shipping Rate Audit                  ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

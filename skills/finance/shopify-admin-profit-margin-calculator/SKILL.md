@@ -2,29 +2,32 @@
 name: shopify-admin-profit-margin-calculator
 role: finance
 description: "Read-only: calculates true net profit per order and per product by factoring in COGS, shipping costs, transaction fees, discounts, refunds, and taxes."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - inventoryItems:query
   - productVariants:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates true net profit and margin at both order-level and product-level granularity. Unlike basic revenue reports, this skill deducts all cost components — COGS (from inventoryItem.unitCost), shipping costs, transaction/payment processing fees, applied discounts, refund amounts, and duties/taxes — to surface actual margin percentages. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_products,read_inventory`
-- API scopes: `read_orders`, `read_products`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products`, `read_inventory`
 - For accurate results, products should have `inventoryItem.unitCost` populated
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window for orders |
 | group_by | string | no | order | Grouping: `order`, `product`, or `variant` |
 | min_orders | integer | no | 1 | Minimum orders for a product to appear (product/variant mode) |
@@ -36,6 +39,9 @@ Calculates true net profit and margin at both order-level and product-level gran
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `id`, `name`, `createdAt`, `totalPriceSet`, `subtotalPriceSet`, `totalShippingPriceSet`, `totalTaxSet`, `totalDiscountsSet`, `currentTotalPriceSet`, `displayFinancialStatus`, `refunds { totalRefundedSet }`, `lineItems { variant { id, inventoryItem { id, unitCost { amount, currencyCode } } }, quantity, originalTotalSet, discountedTotalSet }`, pagination cursor
@@ -144,7 +150,6 @@ query VariantDetails($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Profit & Margin Calculator           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

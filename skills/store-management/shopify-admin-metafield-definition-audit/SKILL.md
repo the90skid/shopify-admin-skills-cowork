@@ -2,26 +2,29 @@
 name: shopify-admin-metafield-definition-audit
 role: store-management
 description: "Read-only: enumerates every metafield definition across all owner types and flags unused, undocumented, or duplicate-key definitions."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - metafieldDefinitions:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Inventories every metafield definition (PRODUCT, VARIANT, CUSTOMER, ORDER, COLLECTION, COMPANY, LOCATION, and others) and flags definitions that are unused (zero values stored), undocumented (missing description), or share a `namespace.key` collision across owner types. Definition sprawl is a leading source of theme/app bugs and slow Admin search. Read-only — no mutations. Provides the data foundation for a definition-cleanup workflow.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,read_customers,read_orders,read_inventory`
-- API scopes: read scopes for any owner types in scope (defaults: `read_products`, `read_customers`, `read_orders`)
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: read scopes for any owner types in scope (defaults: `read_products`, `read_customers`, `read_orders`)
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | owner_types | string | no | all | Comma-separated owner types to scan (e.g. `PRODUCT,CUSTOMER`); `all` scans every supported type |
 | flag_unused | bool | no | true | Flag definitions whose `metafieldsCount` is zero |
 | flag_undocumented | bool | no | true | Flag definitions with empty/null `description` |
@@ -33,6 +36,9 @@ Inventories every metafield definition (PRODUCT, VARIANT, CUSTOMER, ORDER, COLLE
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. No metafield definitions are deleted, updated, or pinned by this skill.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. Determine the list of owner types to scan from `owner_types` (default: full list).
 
@@ -94,7 +100,6 @@ query MetafieldDefinitionAudit($ownerType: MetafieldOwnerType!, $after: String) 
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Metafield Definition Audit           ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

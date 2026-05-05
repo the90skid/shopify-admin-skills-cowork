@@ -2,28 +2,31 @@
 name: shopify-admin-fulfillment-location-routing
 role: fulfillment-ops
 description: "Reassign fulfillment orders from one location to another for warehouse overflow or regional routing."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - fulfillmentOrders:query
   - fulfillmentOrderMove:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries open fulfillment orders assigned to a source location and moves them to a destination location. Used when a warehouse is at capacity, a location is closing, or regional routing rules change. Replaces manual reassignment in Shopify Admin — this skill handles bulk location transfers for any number of open orders in a single workflow.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,write_fulfillments`
-- API scopes: `read_orders`, `write_fulfillments`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_fulfillments`
 - Both source and destination locations must be active fulfillment locations in Shopify
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | source_location_id | string | yes | — | GID of the location to move orders FROM |
 | destination_location_id | string | yes | — | GID of the location to move orders TO |
 | order_filter | string | no | — | Optional order name filter (e.g., "#1001,#1002") |
@@ -35,6 +38,9 @@ Queries open fulfillment orders assigned to a source location and moves them to 
 > ⚠️ `fulfillmentOrderMove` reassigns fulfillment responsibility. This affects which warehouse picks and ships the order. Verify destination location has sufficient stock for all products before moving. Run with `dry_run: true` to confirm the order list and destination before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `fulfillmentOrders` — query
    **Inputs:** `assignedLocationId: <source_location_id>`, `status: OPEN`, `first: 250`, pagination cursor
@@ -116,7 +122,6 @@ mutation FulfillmentOrderMove($id: ID!, $newLocationId: ID!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Fulfillment Location Routing         ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

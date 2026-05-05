@@ -2,27 +2,30 @@
 name: shopify-admin-discount-roi-calculator
 role: conversion-optimization
 description: "Read-only: calculates the true ROI of each discount code and automatic discount by comparing incremental revenue against discount cost."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - discountNodes:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Evaluates the true return on investment for each discount code and automatic discount by measuring revenue generated, number of orders, average order value with vs. without discount, customer acquisition attributed to discounts, and whether discounted orders cannibalized full-price sales. Goes beyond `discount-hygiene-cleanup` (which finds broken/unused codes) to answer "was this discount worth it?" Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_discounts`
-- API scopes: `read_orders`, `read_discounts`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_discounts`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | days_back | integer | no | 90 | Lookback window |
 | min_uses | integer | no | 3 | Minimum uses for a discount to be analyzed |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Evaluates the true return on investment for each discount code and automatic dis
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `discountNodes` — query
    **Inputs:** `first: 250`, select discount details (title, code, type, value, usageCount, startsAt, endsAt), pagination cursor
@@ -138,7 +144,6 @@ query OrdersByDiscount($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Discount ROI Calculator              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

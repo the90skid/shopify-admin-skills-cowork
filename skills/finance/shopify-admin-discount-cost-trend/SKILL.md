@@ -2,26 +2,29 @@
 name: shopify-admin-discount-cost-trend
 role: finance
 description: "Read-only: tracks total discount dollars given over configurable time buckets (week/month/quarter), broken down by discount type and code."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Tracks how much money the store gave away in discounts over time, bucketed by week, month, or quarter, and broken down by discount code and discount type (percentage / fixed amount / free shipping / automatic). Answers: "is our discount spend trending up or down, and which campaigns are driving it?" Read-only — no mutations. Complements `discount-roi-calculator` (per-discount return) with a longitudinal view of total cost.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | period | string | no | month | Bucket size: `week`, `month`, or `quarter` |
 | periods_back | integer | no | 12 | Number of buckets to report |
 | top_codes | integer | no | 10 | Top discount codes to break out individually; remainder grouped as `other` |
@@ -33,6 +36,9 @@ Tracks how much money the store gave away in discounts over time, bucketed by we
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. Compute window from `period` × `periods_back` (e.g., `month` × 12 → last 12 calendar months starting from the first day of the bucket 11 months ago)
 
@@ -109,7 +115,6 @@ query DiscountCostTrend($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Discount Cost Trend                  ║
-║  Store: <store domain>                       ║
 ║  Period: <period> × <periods_back>           ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝

@@ -2,28 +2,31 @@
 name: shopify-admin-gift-card-issuance
 role: conversion-optimization
 description: "Issue Shopify gift cards (store credit) to customers as a goodwill gesture, post-return incentive, or loyalty reward."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customer:query
   - giftCardCreate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Issues Shopify native gift cards to customers programmatically — as goodwill for a delayed shipment, as store credit instead of a cash refund, or as a loyalty reward. Uses Shopify's built-in gift card system; no 3rd-party app required. Gift cards issued here are redeemable at checkout exactly like manual gift cards. Note: `giftCardCreate` is available on all Shopify plans but may require the store to have gift cards enabled in settings.
 
 ## Prerequisites
-- `shopify auth login --store <domain>`
-- API scopes: `read_customers`, `write_gift_cards`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `write_gift_cards`
 - Gift cards must be enabled in Shopify admin → Settings → Gift cards
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | customer_email | string | yes* | — | Customer email to look up and associate with the gift card |
@@ -40,6 +43,9 @@ Issues Shopify native gift cards to customers programmatically — as goodwill f
 > ⚠️ Step 2 executes `giftCardCreate` which issues real monetary value against your store. Gift cards cannot be deleted once created — they can only be disabled. Run with `dry_run: true` to confirm the customer, amount, and expiry before committing. Verify the amount carefully — issued value is immediately redeemable at checkout.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customer` — query
    **Inputs:** Look up by `customer_email` (using customers search) or directly by `customer_id`
@@ -103,7 +109,6 @@ mutation GiftCardCreate($input: GiftCardCreateInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: gift-card-issuance                   ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```
@@ -176,7 +181,7 @@ Gift card issued:
 | Customer not found | Email doesn't match any customer | Verify email; guest checkout customers may not have a customer record |
 | `userErrors` from giftCardCreate | Invalid amount (≤ 0) or missing required field | Verify `amount` is a positive number |
 | Gift cards not enabled | Store settings don't allow gift cards | Enable in Shopify admin → Settings → Gift cards |
-| `write_gift_cards` scope missing | Auth was done without this scope | Re-run `shopify store auth` with `write_gift_cards` scope |
+| `write_gift_cards` scope missing | Auth was done without this scope | Verify the Shopify MCP connector has the `write_gift_cards` scope enabled |
 
 ## Best Practices
 1. Always run `dry_run: true` to confirm customer lookup succeeds and amount is correct before issuing.

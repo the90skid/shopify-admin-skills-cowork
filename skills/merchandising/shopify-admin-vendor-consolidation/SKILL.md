@@ -2,26 +2,29 @@
 name: shopify-admin-vendor-consolidation
 role: merchandising
 description: "Read-only: detects vendor field typos, casing variants, and trailing-whitespace duplicates across the catalog and proposes a canonical merge per cluster."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Walks every product in the catalog, normalizes the `vendor` field, and clusters near-duplicates such as `Acme`, `ACME`, `Acme Inc`, and `Acme  ` (trailing whitespace). Surfaces a recommended canonical form per cluster and the count of products that would migrate. Vendor sprawl breaks vendor-based reports, navigation, and supplier reconciliation. Read-only — no mutations; output is the worklist for a follow-up consolidation. 
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products`
-- API scopes: `read_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | similarity_threshold | float | no | 0.88 | Levenshtein-ratio threshold for clustering (0.0–1.0) |
 | min_cluster_size | integer | no | 2 | Only emit clusters with at least this many distinct vendor strings |
 | ignore_suffixes | string | no | "Inc,LLC,Ltd,Co,Corp" | Comma-separated company suffixes stripped before comparison |
@@ -33,6 +36,9 @@ Walks every product in the catalog, normalizes the `vendor` field, and clusters 
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. The skill produces a recommendation worklist; consolidation must be applied through a separate, reviewed workflow.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `first: 250`, `query: <built from status_filter>`, select `vendor`, `id`, `title`, `status`, pagination cursor
@@ -78,7 +84,6 @@ query AllVendors($query: String, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Vendor Consolidation                 ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

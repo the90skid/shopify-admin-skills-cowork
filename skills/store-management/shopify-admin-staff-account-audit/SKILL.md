@@ -2,27 +2,30 @@
 name: shopify-admin-staff-account-audit
 role: store-management
 description: "Read-only: reviews staff accounts for stale logins, inactive status, and overpermissioned roles to surface security and access hygiene issues."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - staffMembers:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Audits all staff member accounts on the store to surface security and access-hygiene risks. Flags accounts that have not logged in for more than `stale_days` days, accounts that are inactive but still provisioned, and accounts with full / shop-owner-equivalent permissions. Read-only — no mutations. Provides the data foundation for a follow-up access review or deprovisioning workflow.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_users`
-- API scopes: `read_users`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_users`
 - Caller must be Shop Owner or have staff-management permissions to query staff data
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | stale_days | integer | no | 90 | Flag accounts with no login activity in this many days |
 | include_inactive | bool | no | true | Include accounts where `active: false` in the audit output |
 | include_owner | bool | no | false | Include the shop owner row in flagged-account counts |
@@ -33,6 +36,9 @@ Audits all staff member accounts on the store to surface security and access-hyg
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. No staff accounts are deactivated or modified by this skill.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `staffMembers` — query
    **Inputs:** `first: 250`, select `id`, `name`, `email`, `active`, `isShopOwner`, `accountType`, `locale`, `lastSeen`, pagination cursor
@@ -88,7 +94,6 @@ query StaffAccountAudit($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Staff Account Audit                  ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

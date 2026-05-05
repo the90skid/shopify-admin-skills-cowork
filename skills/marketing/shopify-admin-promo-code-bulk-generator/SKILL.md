@@ -2,26 +2,29 @@
 name: shopify-admin-promo-code-bulk-generator
 role: marketing
 description: "Bulk-creates a batch of unique discount codes for campaigns, giveaways, or partner distributions — each code is its own DiscountCodeBasic with single-use limit by default."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - discountCodeBasicCreate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Generates N unique discount codes (e.g., 100 codes for an influencer giveaway, 500 for a partner distribution drop) with a shared prefix and configurable value, usage limit, and validity window. Each code is created as a standalone `DiscountCodeBasic` discount node so it can be tracked independently in Shopify Admin and revoked individually if leaked. Typical use: handing each code to a different recipient where each redemption must be tied to one person.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes write_discounts`
-- API scopes: `read_discounts`, `write_discounts`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_discounts`, `write_discounts`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | true | Preview the codes that would be created without executing mutations |
 | prefix | string | yes | — | Prefix for every generated code (e.g., `GIVEAWAY` produces `GIVEAWAY-A4F2X9`) |
@@ -38,6 +41,9 @@ Generates N unique discount codes (e.g., 100 codes for an influencer giveaway, 5
 > ⚠️ Step 1 executes one `discountCodeBasicCreate` mutation per generated code. Once created, codes appear immediately in Shopify Admin and become redeemable at `starts_at`. Codes cannot be deleted in bulk via the Admin API — they must be removed individually with `discountCodeDelete`. Run with `dry_run: true` to confirm the count, prefix, and value before committing. The default is `dry_run: true`. For high counts (>100), confirm `usage_limit` matches intent — a single high-limit code is usually preferable to N single-use codes if uniqueness per recipient is not required.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. Generate `count` unique random suffixes (6 alphanumeric uppercase characters per suffix). Concatenate as `<prefix>-<suffix>`. Validate no in-memory duplicates and no length > 32.
 
@@ -107,7 +113,6 @@ mutation PromoCodeCreate($basicCodeDiscount: DiscountCodeBasicInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Promo Code Bulk Generator            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

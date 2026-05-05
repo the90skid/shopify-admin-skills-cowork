@@ -2,27 +2,30 @@
 name: shopify-admin-return-reason-analysis
 role: returns
 description: "Read-only: aggregates return reasons across orders to identify product quality or listing issues."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - returns:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all return requests within a date window and aggregates them by return reason code, product, and SKU. Surfaces which products have the highest return rates and which reasons (wrong size, damaged, not as described, etc.) are most common. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_returns`
-- API scopes: `read_orders`, `read_returns`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_returns`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window for return requests |
 | min_returns | integer | no | 3 | Minimum returns per product to include in output |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Queries all return requests within a date window and aggregates them by return r
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `returns` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, pagination cursor
@@ -120,7 +126,6 @@ query OrderCountForPeriod($query: String!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Return Reason Analysis               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

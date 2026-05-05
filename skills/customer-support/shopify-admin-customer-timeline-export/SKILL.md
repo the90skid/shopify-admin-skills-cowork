@@ -2,27 +2,30 @@
 name: shopify-admin-customer-timeline-export
 role: customer-support
 description: "Read-only: exports a complete chronological history for a single customer — orders, refunds, returns, addresses, notes, tags, marketing consent, and lifetime spend — as one consolidated CSV."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customer:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Produces a complete, chronological dossier for a single customer. Pulls the customer record (identity, marketing consent, lifetime totals, tags, notes, addresses) and every order they've placed (with line items, fulfillments, refunds, and returns) and emits one merged CSV plus a human-readable timeline. Used by support agents handling escalations, by data export requests, and as the source-of-truth dump before an account merge or deletion. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,read_orders`
-- API scopes: `read_customers`, `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | customer_id | string | yes | — | GID of the customer (e.g., `gid://shopify/Customer/12345`) |
 | include_line_items | bool | no | true | Include per-line-item rows in the CSV (one row per line item) |
@@ -34,6 +37,9 @@ Produces a complete, chronological dossier for a single customer. Pulls the cust
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. Output contains personally identifiable information — handle the resulting CSV with the same care as any customer export and delete it once the support case is closed.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customer` — query
    **Inputs:** `id: <customer_id>`, select identity fields, lifetime aggregates, tags, note, marketing consent, addresses, createdAt
@@ -128,7 +134,6 @@ query CustomerOrdersForTimeline($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Customer Timeline Export             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

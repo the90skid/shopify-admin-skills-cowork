@@ -2,26 +2,29 @@
 name: shopify-admin-checkout-abandonment-report
 role: conversion-optimization
 description: "Aggregate abandoned checkout data for a time range, broken down by cart value bucket and hour of day (UTC)."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - abandonedCheckouts:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Aggregates abandoned checkout data broken down by cart value bucket and hour of day (UTC). Helps identify when and at what price point customers are most likely to abandon checkout. Scoped to what the `abandonedCheckouts` API provides — device type and geographic location are not available in this API and are not reported.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_checkouts`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_checkouts`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | date_range_start | string | yes | — | Start date in ISO 8601 (e.g., `2025-01-01`) |
@@ -29,6 +32,9 @@ Aggregates abandoned checkout data broken down by cart value bucket and hour of 
 | cart_value_buckets | array | no | [0, 25, 50, 100, 250] | Array of thresholds defining cart value bands (e.g., `[0,25,50,100,250]` creates bands: $0–25, $25–50, $50–100, $100–250, $250+) |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `abandonedCheckouts` — query
    **Inputs:** `first: 250`, `query: "created_at:>='<date_range_start>' created_at:<='<date_range_end>'"`, pagination cursor
@@ -84,7 +90,6 @@ query AbandonedCheckoutsReport($first: Int!, $after: String, $query: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: checkout-abandonment-report          ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

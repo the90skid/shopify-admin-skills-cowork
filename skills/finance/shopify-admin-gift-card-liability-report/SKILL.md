@@ -2,26 +2,29 @@
 name: shopify-admin-gift-card-liability-report
 role: finance
 description: "Read-only: calculates total outstanding gift card balance as a financial liability, broken down by issue cohort and remaining balance band."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - giftCards:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates the store's total outstanding gift card liability — the sum of unredeemed gift card balances that represent a future obligation to deliver goods. Breaks the liability down by **issue-month cohort** and **remaining-balance band** so finance can size the obligation, age it, and forecast breakage. This is the bookkeeping companion to `gift-card-balance-report` (which lists individual cards). Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_gift_cards`
-- API scopes: `read_gift_cards`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_gift_cards`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | status | string | no | enabled | Filter by status: `enabled`, `disabled`, or `all` |
 | balance_bands | array | no | `[10, 50, 100, 250, 500]` | Upper edges of balance bands (in store currency) for distribution table |
 | stale_days | integer | no | 365 | Cards untouched longer than this are flagged as breakage candidates |
@@ -48,6 +51,9 @@ Aggregations:
 - Breakage candidate total — useful for revenue recognition under ASC 606 / IFRS 15 for stores in jurisdictions where breakage can be recognized
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `giftCards` — query
    **Inputs:** `query: "status:<status> balance:>0"`, `first: 250`, select `id`, `balance`, `initialValue`, `createdAt`, `updatedAt`, `expiresOn`, `enabled`, `lastCharacters`, pagination cursor
@@ -106,7 +112,6 @@ query GiftCardLiability($query: String, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Gift Card Liability Report           ║
-║  Store: <store domain>                       ║
 ║  As of: <YYYY-MM-DD>                         ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝

@@ -2,27 +2,30 @@
 name: shopify-admin-variant-option-normalizer
 role: merchandising
 description: "Detects inconsistent variant option naming (Sm vs Small vs S) and bulk-corrects to a standard set."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - productVariantsBulkUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans product variants for inconsistent option values (e.g., "Sm", "Small", "small", "S" all meaning the same size) and bulk-updates them to a canonical set you define. Inconsistent option naming breaks size filters, causes customer confusion, and prevents search apps from grouping variants correctly.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,write_products`
-- API scopes: `read_products`, `write_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | option_name | string | yes | — | Option to normalize (e.g., `Size`, `Color`) |
 | mapping | object | yes | — | Map of non-standard → canonical values (e.g., `{"Sm": "S", "small": "S", "Sml": "S"}`) |
 | filter | string | no | — | Optional product filter (e.g., `tag:apparel`) |
@@ -34,6 +37,9 @@ Scans product variants for inconsistent option values (e.g., "Sm", "Small", "sma
 > ⚠️ `productVariantsBulkUpdate` modifies variant option values. Option value changes affect how the variant appears to customers in the storefront and may break existing cart links or saved wishlists. Run with `dry_run: true` to review all affected variants before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `query: <filter>` (or all products if no filter), `first: 250`, select `options`, `variants { selectedOptions }`, pagination cursor
@@ -111,7 +117,6 @@ mutation ProductVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsB
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Variant Option Normalizer            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

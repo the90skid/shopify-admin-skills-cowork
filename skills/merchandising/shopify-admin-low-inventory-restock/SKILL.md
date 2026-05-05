@@ -2,26 +2,29 @@
 name: shopify-admin-low-inventory-restock
 role: merchandising
 description: "Query all tracked product variants below a stock threshold and export a restock list grouped by vendor."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - productVariants:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all tracked product variants at or below a configurable stock threshold and exports a restock CSV grouped by vendor. By pulling live inventory counts directly from the Shopify Admin API and sorting results by vendor name, this skill gives procurement teams an immediately actionable reorder list without manual exports from the Shopify admin inventory view.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_products`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | threshold | integer | no | 10 | Variants at or below this quantity are included |
@@ -29,6 +32,9 @@ Queries all tracked product variants at or below a configurable stock threshold 
 | include_zero_stock | bool | no | true | Include variants with 0 quantity |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `productVariants` — query
    **Inputs:** `first: 250`, `query: "inventory_quantity:<= <threshold>"`, pagination cursor
@@ -73,7 +79,6 @@ query LowInventoryVariants($first: Int!, $after: String, $query: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: low-inventory-restock                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

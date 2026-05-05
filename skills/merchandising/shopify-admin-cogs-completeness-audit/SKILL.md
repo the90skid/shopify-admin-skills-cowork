@@ -2,27 +2,30 @@
 name: shopify-admin-cogs-completeness-audit
 role: merchandising
 description: "Read-only: identifies products and variants that are missing inventoryItem.unitCost so margin and inventory valuation reports stay accurate."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - productVariants:query
   - inventoryItems:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans every variant in the catalog and surfaces those whose `inventoryItem.unitCost` is missing or zero. Cost of goods sold (COGS) is the foundation for margin reporting, profit-based pricing decisions, and inventory valuation — a single missing cost silently corrupts every downstream calculation. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,read_inventory`
-- API scopes: `read_products`, `read_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | status_filter | string | no | ACTIVE | Variant product status to audit: `ACTIVE`, `DRAFT`, `ARCHIVED`, or `ALL` |
 | vendor_filter | string | no | — | Optional vendor to scope the audit |
 | include_zero_cost | bool | no | true | Treat `unitCost = 0` as missing (recommended; zero cost is rarely intentional) |
@@ -34,6 +37,9 @@ Scans every variant in the catalog and surfaces those whose `inventoryItem.unitC
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. The skill flags missing data; remediation should happen through a follow-up workflow that you control.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `productVariants` — query
    **Inputs:** `first: 250`, `query: <built from status_filter and vendor_filter>`, select `sku`, `price`, `inventoryQuantity`, `inventoryItem { id }`, `product { title, vendor, status, productType }`, pagination cursor
@@ -105,7 +111,6 @@ query InventoryItemCosts($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: COGS Completeness Audit              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

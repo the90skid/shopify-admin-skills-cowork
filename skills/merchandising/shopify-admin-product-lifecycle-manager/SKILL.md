@@ -2,27 +2,30 @@
 name: shopify-admin-product-lifecycle-manager
 role: merchandising
 description: "Bulk transition products through DRAFT → ACTIVE → ARCHIVED status for seasonal launches and sunsetting."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - productUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries products matching a tag, vendor, collection, or status filter and bulk-transitions them to a target status (DRAFT, ACTIVE, or ARCHIVED). Used for seasonal launches (DRAFT → ACTIVE), end-of-season sunsetting (ACTIVE → ARCHIVED), and pre-launch staging (creating as DRAFT, activating on a date).
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products,write_products`
-- API scopes: `read_products`, `write_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | filter | string | yes | — | Product filter query (e.g., `tag:summer-2026`, `vendor:Nike`, `status:draft`) |
 | target_status | string | yes | — | Target status: `ACTIVE`, `DRAFT`, or `ARCHIVED` |
 | dry_run | bool | no | true | Preview products without executing mutations |
@@ -33,6 +36,9 @@ Queries products matching a tag, vendor, collection, or status filter and bulk-t
 > ⚠️ ARCHIVED products are hidden from all sales channels and cannot be purchased. ACTIVE products are immediately visible to customers. Run with `dry_run: true` to review the product list before committing — especially for ARCHIVED transitions which are hard to reverse in bulk.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `query: <filter>`, `first: 250`, pagination cursor
@@ -93,7 +99,6 @@ mutation ProductUpdateStatus($input: ProductInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Product Lifecycle Manager            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,27 +2,30 @@
 name: shopify-admin-multi-location-inventory-audit
 role: merchandising
 description: "Audit inventory levels across all active locations, flagging variants where Available quantity is negative or Committed exceeds On Hand — a signal of inventory sync drift."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - locations:query
   - inventoryItems:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Surfaces inventory sync discrepancies across locations — specifically variants where `available` is negative or `committed` > `on_hand`, which indicate drift between Shopify's committed counter and actual physical stock. Common causes: 3PL delays posting returns, WMS deductions stacking with Shopify's committed count, or multi-store sync issues. Read-only — no mutations. Replaces manual inventory reconciliation spreadsheets and the need to navigate each location separately in the Shopify admin.
 
 ## Prerequisites
-- `shopify auth login --store <domain>`
-- API scopes: `read_products`, `read_inventory`, `read_locations`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `read_inventory`, `read_locations`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | location_ids | array | no | — | Specific location GIDs to audit (default: all active locations) |
@@ -31,6 +34,9 @@ Surfaces inventory sync discrepancies across locations — specifically variants
 | include_untracked | bool | no | false | Include variants with inventory tracking disabled |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `locations` — query
    **Inputs:** `first: 50`, `query: "is_active:true"`
@@ -132,7 +138,6 @@ Note: `inventoryItems:query` in the frontmatter represents querying inventory it
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: multi-location-inventory-audit       ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

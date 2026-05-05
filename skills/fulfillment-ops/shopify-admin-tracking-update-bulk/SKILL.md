@@ -2,27 +2,30 @@
 name: shopify-admin-tracking-update-bulk
 role: fulfillment-ops
 description: "Batch-update tracking numbers and URLs on existing fulfillments when a carrier reassigns tracking IDs."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - order:query
   - fulfillmentUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Looks up existing fulfillments on orders and updates their tracking numbers and carrier URLs in bulk. Used when a carrier reissues tracking IDs after a label reprint, a 3PL batch-uploads corrected tracking, or a carrier integration pushes wrong tracking numbers. Replaces manual tracking corrections in Shopify Admin order by order.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,write_fulfillments`
-- API scopes: `read_orders`, `write_fulfillments`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_fulfillments`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | updates | array | yes | — | List of `{order_id, fulfillment_id, tracking_number, tracking_url, carrier}` objects |
 | notify_customer | bool | no | false | Resend shipping confirmation with updated tracking |
 | dry_run | bool | no | true | Preview updates without executing mutations |
@@ -33,6 +36,9 @@ Looks up existing fulfillments on orders and updates their tracking numbers and 
 > ⚠️ `fulfillmentUpdate` overwrites existing tracking info. Set `notify_customer: false` unless you explicitly want to resend shipment notifications — customers will receive a new email for every updated fulfillment if enabled. Run with `dry_run: true` to confirm the fulfillment list before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `order` — query
    **Inputs:** `id: <order_id>` for each order in `updates`
@@ -96,7 +102,6 @@ mutation FulfillmentUpdate($fulfillmentId: ID!, $trackingInfoInput: FulfillmentT
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Tracking Update Bulk                 ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

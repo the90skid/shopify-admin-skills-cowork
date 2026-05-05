@@ -2,26 +2,29 @@
 name: shopify-admin-gift-message-extraction
 role: conversion-optimization
 description: "Read-only: extracts gift messages, gift recipients, and gift flags from order custom attributes and notes for fulfillment teams to print on packing slips."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Pulls gift messages, gift-recipient names, and "is_gift" flags from order custom attributes and order notes for orders that are pending or in-progress fulfillment. Produces a single sheet that the fulfillment team can use to print gift cards / inserts and route gift orders correctly. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 7 | Lookback window of orders to scan |
 | status | string | no | unfulfilled | Order status filter: `unfulfilled`, `partial`, `any` |
 | message_keys | array | no | `["gift_message","gift_note","Gift Message","Gift Note","message","note_to_recipient"]` | Custom attribute keys (any case) that may contain a gift message |
@@ -46,6 +49,9 @@ For each order:
 3. An order qualifies for the report if `is_gift: true` OR `gift_message` was captured OR `gift_recipient` was captured
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. Compute filter: `created_at:>='<NOW - days_back days>'` and translate `status` → `fulfillment_status:unfulfilled` / `:partial` / no filter
 
@@ -124,7 +130,6 @@ query OrdersForGiftExtraction($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Gift Message Extraction              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

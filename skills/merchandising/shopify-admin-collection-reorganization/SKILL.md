@@ -2,27 +2,30 @@
 name: shopify-admin-collection-reorganization
 role: merchandising
 description: "Reorder products in a manual Shopify collection by inventory level, moving in-stock products to the top and out-of-stock to the bottom."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - collection:query
   - collectionReorderProducts:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Reorders products in a manual Shopify collection by inventory level without navigating the Shopify admin UI. This skill queries all products in the collection, computes the desired sort order by `totalInventory`, and applies it in a single `collectionReorderProducts` mutation. Note: only works on manual (custom) collections — smart collections managed by Shopify rules are not supported.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_products`, `write_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | collection_id | string | yes | — | GID of the manual collection (e.g., `gid://shopify/Collection/123`) |
@@ -35,6 +38,9 @@ Reorders products in a manual Shopify collection by inventory level without navi
 `collectionReorderProducts` only works on manual (custom) collections. If the collection has `sortOrder` other than `MANUAL`, the skill must abort with a clear message: "Cannot reorder: collection sort order is not MANUAL. Switch the collection to manual sorting in the Shopify admin first."
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `collection` — query
    **Inputs:** `id: <collection_id>`, `first: 250`, pagination cursor
@@ -101,7 +107,6 @@ mutation CollectionReorderProducts($id: ID!, $moves: [MoveInput!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: collection-reorganization            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

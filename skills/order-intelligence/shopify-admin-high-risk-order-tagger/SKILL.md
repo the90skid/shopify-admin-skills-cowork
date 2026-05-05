@@ -2,28 +2,31 @@
 name: shopify-admin-high-risk-order-tagger
 role: order-intelligence
 description: "Tags orders flagged as high-risk for manual review and optionally places fulfillment holds to prevent shipping."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - tagsAdd:mutation
   - fulfillmentOrderHold:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries recent high-risk orders and takes two protective actions: tags the order for staff visibility and optionally places a fulfillment hold to prevent the order from shipping until reviewed. Complements `order-risk-report` (which only reads) with write actions that create a reviewable queue.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,write_orders,write_fulfillments`
-- API scopes: `read_orders`, `write_orders`, `write_fulfillments`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_orders`, `write_fulfillments`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 1 | Lookback window (default: last 24 hours) |
 | min_order_value | float | no | 0 | Only flag orders above this value |
 | tag | string | no | fraud-review | Tag applied to flagged orders |
@@ -37,6 +40,9 @@ Queries recent high-risk orders and takes two protective actions: tags the order
 > ⚠️ `fulfillmentOrderHold` prevents orders from being fulfilled until the hold is explicitly released. Customers will experience a shipping delay while on hold. Use `hold_fulfillment: false` if you only want to tag without blocking fulfillment. Run with `dry_run: true` to confirm the order list before committing. Release holds with the `order-hold-and-release` skill after review.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "risk_level:high created_at:>='<NOW - days_back days>'"`, `first: 250`, select `riskLevel`, `fulfillmentOrders`, `totalPriceSet`
@@ -130,7 +136,6 @@ mutation FulfillmentOrderHold($id: ID!, $fulfillmentHold: FulfillmentOrderHoldIn
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: High Risk Order Tagger               ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

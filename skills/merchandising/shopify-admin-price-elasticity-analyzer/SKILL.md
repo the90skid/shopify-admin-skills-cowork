@@ -2,28 +2,31 @@
 name: shopify-admin-price-elasticity-analyzer
 role: merchandising
 description: "Read-only: analyzes the relationship between product pricing and sales velocity to identify optimal price points and price-sensitive products."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - orders:query
   - productVariants:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Analyzes price-to-velocity relationships across the product catalog to identify which products are price-sensitive and where optimal price points might exist. Compares products within the same category/vendor at different price tiers, and examines how products with compare-at prices (on sale) perform vs. full-price items. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_products`
-- API scopes: `read_orders`, `read_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | days_back | integer | no | 90 | Sales lookback window |
 | group_by | string | no | product_type | Group comparison: `product_type`, `vendor`, or `collection` |
 | format | string | no | human | Output format: `human` or `json` |
@@ -33,6 +36,9 @@ Analyzes price-to-velocity relationships across the product catalog to identify 
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `first: 250`, `status: ACTIVE`, select `id`, `title`, `productType`, `vendor`, `variants { price, compareAtPrice, inventoryQuantity }`, pagination cursor
@@ -137,7 +143,6 @@ query VariantsOnSale($query: String, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Price Elasticity Analyzer            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,26 +2,29 @@
 name: shopify-admin-product-data-completeness-score
 role: merchandising
 description: "Read-only: scores each product on data completeness across description, images, SEO, weight, barcode, cost, and metafields."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Calculates a data completeness score (0–100) for each active product based on the presence of key fields: description, images, SEO title, SEO description, variant weight, barcode, cost, and specified metafields. Produces a ranked list of products needing the most data work. Read-only — no mutations. Catalog health report in a single pass.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_products`
-- API scopes: `read_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | status_filter | string | no | active | Product status to score: `active`, `draft`, or `all` |
 | required_metafields | array | no | [] | List of `namespace.key` metafields that are required (e.g., `["custom.material"]`) |
 | format | string | no | human | Output format: `human` or `json` |
@@ -45,6 +48,9 @@ Calculates a data completeness score (0–100) for each active product based on 
 | **Total** | **100** |
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `query: "status:<status_filter>"`, `first: 250`, select all completeness fields, pagination cursor
@@ -116,7 +122,6 @@ query ProductCompleteness($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Product Data Completeness Score      ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

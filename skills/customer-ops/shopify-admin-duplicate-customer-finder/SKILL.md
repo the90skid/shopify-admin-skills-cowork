@@ -2,26 +2,29 @@
 name: shopify-admin-duplicate-customer-finder
 role: customer-ops
 description: "Read-only: finds likely duplicate customer records by matching email, phone, or name combinations."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans the customer database for likely duplicate records using email, phone, and name matching. Duplicate customer records cause split order history, incorrect LTV calculations, and incorrect marketing segmentation. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers`
-- API scopes: `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | match_on | string | no | email | Match strategy: `email`, `phone`, `name`, or `all` |
 | min_orders | integer | no | 0 | Only flag duplicates where at least one record has this many orders |
 | format | string | no | human | Output format: `human` or `json` |
@@ -31,6 +34,9 @@ Scans the customer database for likely duplicate records using email, phone, and
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. Duplicate merging is not supported by the Shopify Admin API — flagged duplicates must be merged manually in Shopify Admin.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `first: 250`, select `email`, `phone`, `firstName`, `lastName`, `numberOfOrders`, `totalSpentV2`, pagination cursor
@@ -83,7 +89,6 @@ query CustomersForDeduplication($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Duplicate Customer Finder            ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

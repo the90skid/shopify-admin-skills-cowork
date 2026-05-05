@@ -2,28 +2,31 @@
 name: shopify-admin-vip-customer-identifier
 role: marketing
 description: "Identifies top-spending customers (top N% by lifetime value or order frequency) and exports a VIP candidate list; optionally tags qualified customers as VIPs."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - orders:query
   - customerUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Ranks customers by lifetime spend and order frequency, identifies the top N% (by value, frequency, or both), and outputs a CSV of VIP candidates. Optionally applies a VIP tag to qualified customers via `customerUpdate`. Used to build loyalty segments, prioritize white-glove support, or seed exclusive-access campaigns. The lifetime spend and order count are pulled directly from Shopify customer aggregates — no external CRM required.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,read_orders,write_customers`
-- API scopes: `read_customers`, `read_orders`, `write_customers` (only if `tag_customers: true`)
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `read_orders`, `write_customers` (only if `tag_customers: true`)
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | true | Preview VIP list without applying tags |
 | rank_by | string | no | spend | Ranking strategy: `spend` (lifetime value), `frequency` (order count), or `both` (composite score) |
@@ -38,6 +41,9 @@ Ranks customers by lifetime spend and order frequency, identifies the top N% (by
 > ⚠️ When `tag_customers: true`, Step 3 executes `customerUpdate` mutations that mutate customer tag lists. Tags persist until manually removed. Run with `dry_run: true` first to confirm the VIP list and qualifying thresholds. The default is `dry_run: true` — you must explicitly set `dry_run: false` and `tag_customers: true` to apply tags.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `first: 250`, `query: "orders_count:>=<min_orders>"`, select `id`, `displayName`, `defaultEmailAddress { emailAddress }`, `numberOfOrders`, `amountSpent { amount currencyCode }`, `tags`, pagination cursor
@@ -128,7 +134,6 @@ mutation CustomerUpdateVipTag($input: CustomerInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: VIP Customer Identifier              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

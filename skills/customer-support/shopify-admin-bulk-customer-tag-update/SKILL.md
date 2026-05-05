@@ -2,27 +2,30 @@
 name: shopify-admin-bulk-customer-tag-update
 role: customer-support
 description: "Adds and/or removes tags across a filtered set of customers — supports query-based selection, explicit ID lists, and union/replace tag modes."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - customerUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Applies bulk tag changes (add, remove, or both) to customers selected by a query filter (e.g., `total_spent:>=500`, `tag:newsletter`) or by an explicit list of customer GIDs. Tags are how Shopify segments customers for discounts, marketing, and support workflows; this skill makes batch changes safe, dry-runnable, and auditable. Use when migrating from one tag taxonomy to another, when retiring a campaign-specific tag, or when applying a new segment tag identified by an analytics report.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,write_customers`
-- API scopes: `read_customers`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | true | Preview matching customers and the planned tag changes without executing mutations |
 | filter | string | conditional | — | Customer query filter (e.g., `tag:newsletter`, `total_spent:>=500`); required if `customer_ids` is omitted |
@@ -37,6 +40,9 @@ Applies bulk tag changes (add, remove, or both) to customers selected by a query
 > ⚠️ Step 2 executes one `customerUpdate` mutation per customer in the matched set. Tag changes are immediate and visible to staff and to any apps reading customer tags (loyalty, marketing automation, segmentation). `mode: replace` overwrites existing tags entirely — manually-applied operational tags will be lost. The default is `dry_run: true` and `mode: merge`. Always run dry-run first, review the matched count, and confirm `add_tags`/`remove_tags` are spelled correctly — Shopify tags are case-sensitive.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** When `filter` is set: `query: <filter>`, `first: 250`, pagination cursor. When `customer_ids` is set: batch query with `query: "id:<id1> OR id:<id2> ..."` (chunk into batches of 25 IDs). Select `id`, `displayName`, `defaultEmailAddress { emailAddress }`, `tags`.
@@ -107,7 +113,6 @@ mutation CustomerTagsUpdate($input: CustomerInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Bulk Customer Tag Update             ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

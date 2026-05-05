@@ -2,26 +2,29 @@
 name: shopify-admin-tax-liability-summary
 role: finance
 description: "Read-only: aggregates tax collected by jurisdiction from order tax lines for filing prep."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Aggregates tax amounts collected across all orders in a period, broken down by tax jurisdiction (state/province, country) and tax rate. Produces a summary suitable for periodic tax filing prep. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders`
-- API scopes: `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 90 | Lookback window (use 30/90 to match filing periods) |
 | group_by | string | no | jurisdiction | Breakdown: `jurisdiction` or `rate` |
 | exclude_refunded | bool | no | true | Exclude tax from fully refunded orders |
@@ -32,6 +35,9 @@ Aggregates tax amounts collected across all orders in a period, broken down by t
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time. This report is for internal preparation purposes only — consult a tax professional for actual filing obligations.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "financial_status:paid created_at:>='<NOW - days_back days>'"`, `first: 250`, select `taxLines { title, rate, priceSet }`, `refunds { refundLineItems }`, pagination cursor
@@ -99,7 +105,6 @@ query TaxLiabilityOrders($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Tax Liability Summary                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

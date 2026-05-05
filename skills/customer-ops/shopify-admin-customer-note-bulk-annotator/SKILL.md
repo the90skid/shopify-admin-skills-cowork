@@ -2,27 +2,30 @@
 name: shopify-admin-customer-note-bulk-annotator
 role: customer-ops
 description: "Adds internal notes to customer records in bulk — useful for post-campaign flags, import annotations, or support context."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - customers:query
   - customerUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries customers matching a filter (tag, email list, or spend threshold) and appends a note to each customer record. Internal notes are visible to staff in Shopify Admin but not to customers. Used for post-campaign annotation, import source tracking, VIP flags, or support context.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers,write_customers`
-- API scopes: `read_customers`, `write_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`, `write_customers`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | filter | string | yes | — | Customer filter query (e.g., `tag:vip`, `total_spent:>=500`) |
 | note | string | yes | — | Note text to append to matching customers |
 | append | bool | no | true | Append to existing note (true) or replace entirely (false) |
@@ -34,6 +37,9 @@ Queries customers matching a filter (tag, email list, or spend threshold) and ap
 > ⚠️ If `append: false`, this overwrites the existing customer note entirely. Existing notes will be lost. Default is `append: true` which safely appends with a timestamp prefix. Run with `dry_run: true` to confirm the customer list before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `customers` — query
    **Inputs:** `query: <filter>`, `first: 250`, select `id`, `displayName`, `note`, pagination cursor
@@ -95,7 +101,6 @@ mutation CustomerUpdateNote($input: CustomerInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Customer Note Bulk Annotator         ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

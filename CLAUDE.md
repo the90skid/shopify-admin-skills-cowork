@@ -1,97 +1,79 @@
-# Shopify Admin Skills — Claude Session Guide
+# Shopify Admin Skills — Claude Cowork Session Guide
 
-## Cold Start Checklist
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills) by [40rty](https://40rty.ai). Adapted for Claude Cowork.
 
-Run this from the repo root in a terminal **before** starting Claude Code:
+## Getting Started
 
-```bash
-chmod +x scripts/dev-session.sh
-./scripts/dev-session.sh [store-domain]
-# Default store: 91pqhx-iy.myshopify.com
-```
-
-This script: authenticates with the store → verifies the connection → launches `claude --plugin-dir .`
-
----
-
-## Manual Cold Start (step by step)
-
-### 1. Authenticate with the store (terminal — interactive)
-```bash
-shopify store auth --store 91pqhx-iy.myshopify.com \
-  --scopes read_orders,read_customers,read_products,write_products,read_checkouts,read_discounts,read_inventory
-```
+### 1. Connect the Shopify MCP Connector
+In Claude Cowork settings, connect the **Official Shopify Connector**. This grants Claude access to your store's Admin GraphQL API via MCP tools.
 
 ### 2. Verify the connection
-```bash
-shopify store execute --store 91pqhx-iy.myshopify.com --query 'query { shop { name id } }'
-# Expected: { "shop": { "name": "...", "id": "gid://shopify/Shop/..." } }
-```
+Ask Claude: "What's my store name?"
+Expected: Claude uses `graphql_query` to run `{ shop { name id } }` and returns your store info.
 
-### 3. Launch Claude Code with the local plugin
-```bash
-claude --plugin-dir /Users/tamired/ws/shopify-admin-skills
-```
+### 3. Run any skill
+All skills are available via the Skill tool. Example:
+> "Run the abandoned cart recovery skill with dry_run: true"
 
-> The **Shopify AI Toolkit** plugin (`shopify-plugin:*`) is permanently installed and loads automatically.  
-> The **shopify-admin-skills** plugin (`shopify-admin-skills:*`) is loaded via `--plugin-dir`.
+No CLI required. No `shopify auth login`. No `--plugin-dir` flag.
 
 ---
 
-## Validating Plugins Are Loaded
+## Available MCP Tools
 
-At the start of a session, Claude should confirm both plugins are active.
-
-**Shopify AI Toolkit** — skills that should be available:
-- `shopify-plugin:shopify-admin` (GraphQL doc search + validation)
-- `shopify-plugin:shopify-admin-execution` (store execution workflow)
-
-**shopify-admin-skills** — skills that should be available:
-- `shopify-admin-skills:abandoned-cart-recovery`
-- `shopify-admin-skills:bulk-price-adjustment`
-- `shopify-admin-skills:low-inventory-restock`
-- `shopify-admin-skills:collection-reorganization`
-- `shopify-admin-skills:order-lookup-and-summary`
-- `shopify-admin-skills:refund-and-reorder`
-- `shopify-admin-skills:address-correction`
-- `shopify-admin-skills:discount-ab-analysis`
-- `shopify-admin-skills:checkout-abandonment-report`
-- `shopify-admin-skills:top-product-performance`
-- `shopify-admin-skills:customer-win-back`
-- `shopify-admin-skills:loyalty-segment-export`
-
----
-
-## Store Details
-
-| Field | Value |
-|-------|-------|
-| Store domain | `91pqhx-iy.myshopify.com` |
-| Shop GID | `gid://shopify/Shop/81491230913` |
-| Auth account | `tamired@gmail.com` |
-| API version | `2025-01` |
+The Shopify MCP Connector provides these tools:
+- `graphql_query` — execute read-only GraphQL queries
+- `graphql_mutation` — execute GraphQL mutations
+- `graphql_schema` — explore the Shopify Admin API schema
+- `search_docs_chunks` — search Shopify developer docs
+- `get-order`, `get-product`, `list-orders`, `list-customers` — convenience tools
+- `search_products`, `search_collections` — search tools
 
 ---
 
 ## Running a Skill
 
-Every skill in `skills/<role>/<name>/SKILL.md` follows this pattern:
+Every skill in `skills/<category>/<name>/SKILL.md` follows this pattern:
+1. Claude reads the skill instructions
+2. Uses `graphql_query` / `graphql_mutation` MCP tools to execute operations
+3. Returns structured output (human-readable or JSON)
 
-1. Use `shopify-plugin:shopify-admin` to validate the GraphQL operation
-2. Use `shopify-plugin:shopify-admin-execution` to execute against the store
-3. Always pass `dry_run: true` on first run for any mutation skill
+Always use `dry_run: true` on first run for any mutation skill.
 
-Example — look up recent orders:
+---
+
+## Scheduled Tasks
+
+Tasks in `scheduled/` can be registered via the `schedule` skill:
+> "Schedule the morning store briefing to run every day at 8am"
+
+---
+
+## Skill Categories
+
+| Category | Skills | Description |
+|----------|--------|-------------|
+| marketing | 6 | Cart recovery, win-back, loyalty, promos |
+| merchandising | 18 | Inventory, pricing, products, SEO |
+| customer-support | 8 | Refunds, reorders, address fixes, lookups |
+| customer-ops | 14 | Segmentation, RFM, cohorts, churn |
+| conversion-optimization | 8 | Checkout analysis, cross-sell, discounts |
+| fulfillment-ops | 11 | Routing, tracking, shipping, SLA |
+| finance | 12 | Revenue, payouts, margins, tax |
+| order-intelligence | 9 | Risk, attribution, affinity, repeat purchase |
+| returns | 6 | Fraud, restocking, reason analysis |
+| store-management | 8 | Discounts, drafts, files, SEO, redirects |
+
+---
+
+## Validation
+
 ```bash
-shopify store execute --store 91pqhx-iy.myshopify.com \
-  --query 'query { orders(first: 5, sortKey: CREATED_AT, reverse: true) { edges { node { id name displayFinancialStatus } } } }'
+npm run validate:index
 ```
 
 ---
 
-## Validation Script
+## Attribution
 
-```bash
-pnpm validate:index
-# Expected: ✅ GraphQL Operations Index valid — 12 skill(s), 15 operation(s) checked.
-```
+Original skills created by [40rty](https://40rty.ai) — [github.com/40RTY-ai/shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills). MIT License. Adapted for Claude Cowork by [the90skid](https://github.com/the90skid).

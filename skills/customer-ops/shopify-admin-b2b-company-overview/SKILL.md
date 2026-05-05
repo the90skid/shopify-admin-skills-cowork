@@ -2,28 +2,31 @@
 name: shopify-admin-b2b-company-overview
 role: customer-ops
 description: "Read-only: lists B2B company accounts with locations, catalogs, and payment terms for wholesale management."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - companies:query
   - companyLocations:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Queries all B2B company accounts and their associated locations, price lists, and payment terms. Provides a consolidated view of the wholesale account portfolio for ops and sales teams. Read-only — no mutations. Requires Shopify B2B (available on Shopify Plus).
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_customers`
-- API scopes: `read_customers`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_customers`
 - Store must be on Shopify Plus with B2B enabled
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 
 ## Safety
@@ -31,6 +34,9 @@ Queries all B2B company accounts and their associated locations, price lists, an
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `companies` — query
    **Inputs:** `first: 250`, select `name`, `locations`, `contacts`, `createdAt`, pagination cursor
@@ -122,7 +128,6 @@ query CompanyLocationsDetail($companyId: ID!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: B2B Company Overview                 ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

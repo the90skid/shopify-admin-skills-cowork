@@ -2,28 +2,31 @@
 name: shopify-admin-payout-reconciliation
 role: finance
 description: "Read-only: reconciles Shopify Payments payouts against the order transactions that funded them and flags amount discrepancies."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - shopifyPaymentsAccount:query
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Reconciles Shopify Payments payouts to the order transactions that contributed to them. For each payout, sums gross sales, refunds, adjustments, and fees, and compares the computed net to the payout's reported `net` amount. Discrepancies are flagged with a delta and the suspected cause. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_shopify_payments_payouts,read_orders`
-- API scopes: `read_shopify_payments_payouts`, `read_orders`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_shopify_payments_payouts`, `read_orders`
 - Store must use Shopify Payments. If the store uses only third-party gateways, this skill exits cleanly with a message.
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | days_back | integer | no | 30 | Lookback window covering payouts issued in this period |
 | tolerance | number | no | 0.01 | Acceptable delta in store currency before flagging a discrepancy |
 | format | string | no | human | Output format: `human` or `json` |
@@ -33,6 +36,9 @@ Reconciles Shopify Payments payouts to the order transactions that contributed t
 > ℹ️ Read-only skill — no mutations are executed. Reconciliation output is informational; do not treat flagged discrepancies as confirmed errors before reviewing the underlying transactions in the Shopify admin.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `shopifyPaymentsAccount` — query
    **Inputs:** select `payouts(first: 100, query: "issued_at:>='<NOW - days_back days>'")` with `id`, `issuedAt`, `status`, `net`, `gross`, `summary { chargesGross, chargesFee, refundsGross, refundsFee, adjustmentsGross, adjustmentsFee, retriedPayoutsGross, retriedPayoutsFee }`
@@ -125,7 +131,6 @@ query OrdersFundingPayout($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Payout Reconciliation                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

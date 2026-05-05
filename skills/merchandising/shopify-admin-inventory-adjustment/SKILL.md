@@ -2,27 +2,30 @@
 name: shopify-admin-inventory-adjustment
 role: merchandising
 description: "Apply inventory quantity adjustments to specific variants at specific locations — after a cycle count, 3PL return batch, or sync discrepancy correction."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - productVariants:query
   - inventoryAdjustQuantities:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Applies inventory quantity corrections to specific variants at specific locations — the programmatic equivalent of manually editing inventory in the Shopify admin. Use after a cycle count reveals discrepancies, after a 3PL return batch posts late, or after the `multi-location-inventory-audit` skill identifies Available/Committed drift. Replaces manual row-by-row inventory editing in the Shopify admin.
 
 ## Prerequisites
-- `shopify auth login --store <domain>`
-- API scopes: `read_products`, `write_inventory`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_inventory`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | adjustments | array | yes | — | Array of `{sku, location_id, delta}` objects. `delta` is the signed quantity change (e.g., `+5` to add 5 units, `-3` to remove 3) |
@@ -34,6 +37,9 @@ Applies inventory quantity corrections to specific variants at specific location
 > ⚠️ Step 2 executes `inventoryAdjustQuantities` which immediately changes live inventory quantities. Incorrect adjustments can cause overselling (if you reduce too far) or inflated stock counts (if you add incorrectly). Run with `dry_run: true` to see the before/after quantities per SKU before committing. The `reason` field is logged permanently in Shopify's inventory activity history.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `productVariants` — query
    **Inputs:** For each `{sku}` in `adjustments`: look up the variant by SKU to get its `inventoryItem.id`; also fetch current `inventoryQuantity` for before/after comparison
@@ -104,7 +110,6 @@ mutation InventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: inventory-adjustment                 ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -1,25 +1,15 @@
 {
-  "name": "shopify-admin-skills",
+  "name": "shopify-admin-skills-cowork",
   "version": "1.0.0",
-  "description": "AI agent skills to operate your Shopify store via native Admin GraphQL. 63 workflows across marketing, inventory, fulfillment, finance, and support.",
+  "description": "Shopify Admin Skills for Claude Cowork + Official Shopify MCP Connector. 106 workflows across marketing, inventory, fulfillment, finance, and support.",
   "author": {
-    "name": "40rty"
+    "name": "the90skid",
+    "attribution": "Forked from shopify-admin-skills by 40rty (https://github.com/40RTY-ai/shopify-admin-skills)"
   },
-  "homepage": "https://skills.40rty.ai",
-  "repository": "https://github.com/40RTY-ai/shopify-admin-skills",
+  "homepage": "https://github.com/the90skid/shopify-admin-skills-cowork",
+  "repository": "https://github.com/the90skid/shopify-admin-skills-cowork",
   "license": "MIT",
-  "keywords": [
-    "shopify",
-    "ecommerce",
-    "graphql",
-    "admin-api",
-    "operator",
-    "agents",
-    "store-management",
-    "inventory",
-    "orders",
-    "refunds"
-  ],
+  "platform": "Claude Cowork",
   "skills": [
     "./skills/marketing",
     "./skills/merchandising",

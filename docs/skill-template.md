@@ -2,28 +2,30 @@
 name: skill-slug
 role: marketing
 description: "One sentence: what business outcome this achieves."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - OperationName:query
   - OperationName:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
 
 ## Purpose
 One paragraph describing the business outcome, when to use this skill, and what it replaces.
 
 ## Prerequisites
-- Authenticated Shopify CLI session (`shopify auth login --store <domain>`)
-- Required API scopes: `read_orders`, `write_discounts` (list all required scopes)
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `write_discounts` (list all required scopes)
 
 ## Parameters
 All skills accept these universal parameters:
 
 | Parameter | Type   | Required | Default | Description |
 |-----------|--------|----------|---------|-------------|
-| store     | string | yes      | —       | Store domain (e.g., mystore.myshopify.com) |
 | format    | string | no       | human   | Output format: `human` (default) or `json` |
 | dry_run   | bool   | no       | false   | Preview mutations without executing |
 
@@ -35,11 +37,14 @@ Skill-specific parameters:
 
 ## Safety
 
-> ⚠️ **Include this section only for skills with irreversible mutations (financial, bulk data changes).**
+> **Include this section only for skills with irreversible mutations (financial, bulk data changes).**
 
 Steps N and N execute mutations that cannot be undone. Run with `dry_run: true` to preview results before committing.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `OperationName` — query
    **Inputs:** field, filter
@@ -92,7 +97,6 @@ mutation OperationName($input: InputType!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: <skill name>                         ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```
@@ -122,7 +126,6 @@ For `format: json`, emit:
 ```json
 {
   "skill": "<skill-slug>",
-  "store": "<domain>",
   "started_at": "<ISO8601>",
   "completed_at": "<ISO8601>",
   "dry_run": false,

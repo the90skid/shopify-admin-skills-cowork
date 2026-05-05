@@ -2,26 +2,29 @@
 name: shopify-admin-post-purchase-survey-trigger
 role: conversion-optimization
 description: "Read-only: identifies orders 7–14 days post-fulfillment that are eligible for a post-purchase survey campaign, excluding refunded or cancelled orders."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Builds the recipient list for a post-purchase survey campaign by selecting orders that were fulfilled between `survey_min_days` and `survey_max_days` ago, are not refunded, not cancelled, and (optionally) belong to customers who consented to marketing. Output is a clean recipient list ready to load into your email or SMS automation. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_customers,read_fulfillments`
-- API scopes: `read_orders`, `read_customers`, `read_fulfillments`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_customers`, `read_fulfillments`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | survey_min_days | integer | no | 7 | Earliest days after fulfillment to survey (give time for delivery + initial use) |
 | survey_max_days | integer | no | 14 | Latest days after fulfillment to survey (recall fades after ~2 weeks) |
 | marketing_consent_only | bool | no | true | Restrict to customers with `marketingState: SUBSCRIBED` |
@@ -33,6 +36,9 @@ Builds the recipient list for a post-purchase survey campaign by selecting order
 > ℹ️ Read-only skill — no mutations are executed. The skill produces a recipient list; the caller is responsible for actually sending the survey via their own email / SMS platform. Honor `marketing_consent_only: true` for promotional surveys to stay compliant with consent rules.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. Compute window: `latest_fulfilled_at = NOW - survey_min_days`, `earliest_fulfilled_at = NOW - survey_max_days`
 
@@ -108,7 +114,6 @@ query SurveyEligibleOrders($query: String!, $after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Post-Purchase Survey Trigger         ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

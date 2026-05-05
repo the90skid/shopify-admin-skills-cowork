@@ -2,27 +2,30 @@
 name: shopify-admin-bulk-price-adjustment
 role: merchandising
 description: "Query products by collection or tag and update all variant prices by a percentage or fixed amount, with optional floor/ceiling constraints."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - productVariantsBulkUpdate:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Applies a percentage or fixed price adjustment to every variant across a Shopify collection or tag in a single automated workflow — without manually navigating products in the admin UI, exporting CSVs, editing them, and re-importing. Use this skill when you need to run a storewide or collection-level sale, revert prices after a promotion ends, pass through a supplier cost increase, or align pricing across a segment of products.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify auth login --store <domain>`
-- API scopes: `read_products`, `write_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | format | string | no | human | Output format: `human` or `json` |
 | dry_run | bool | no | false | Preview operations without executing mutations |
 | collection_id | string | no* | — | GID of collection to target (e.g., `gid://shopify/Collection/123`) |
@@ -39,6 +42,9 @@ Applies a percentage or fixed price adjustment to every variant across a Shopify
 > ⚠️ Step 2 executes `productVariantsBulkUpdate` mutations that change live prices immediately. Price changes cannot be undone in bulk via API — each variant must be reverted individually. Always run with `dry_run: true` first to review the full change set before committing. Verify the CSV output from dry_run against your expected results before proceeding.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `first: 250`, `query: "collection_id:'<id>'"` or `query: "tag:'<tag>'"`, pagination cursor
@@ -105,7 +111,6 @@ mutation ProductVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsB
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: bulk-price-adjustment                ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

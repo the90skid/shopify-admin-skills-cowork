@@ -2,27 +2,30 @@
 name: shopify-admin-page-content-audit
 role: store-management
 description: "Read-only: lists all pages and blog posts, flags empty or short content and missing SEO fields."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - pages:query
   - articles:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Scans all store pages and blog articles for missing or thin content (short body, missing SEO title/description, empty body). Thin content pages are penalized by search engines and create a poor customer experience. Read-only — no mutations. Complements `seo-metadata-audit` (which covers products and collections).
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_content`
-- API scopes: `read_content`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_content`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain (e.g., mystore.myshopify.com) |
 | min_body_length | integer | no | 100 | Flag pages with body content shorter than this (characters) |
 | include_unpublished | bool | no | false | Also audit unpublished pages and articles |
 | format | string | no | human | Output format: `human` or `json` |
@@ -32,6 +35,9 @@ Scans all store pages and blog articles for missing or thin content (short body,
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `pages` — query
    **Inputs:** `first: 250`, select `title`, `body`, `bodySummary`, `seo`, `publishedAt`, pagination cursor
@@ -105,7 +111,6 @@ query ArticleContentAudit($after: String) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Page Content Audit                   ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

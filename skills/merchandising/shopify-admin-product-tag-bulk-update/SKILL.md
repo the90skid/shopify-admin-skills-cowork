@@ -2,22 +2,26 @@
 name: shopify-admin-product-tag-bulk-update
 role: merchandising
 description: "Add or remove tags on all products matching a collection, existing tag, or search query — for campaign setup, teardown, or catalog organization."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - products:query
   - tagsAdd:mutation
   - tagsRemove:mutation
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Adds or removes one or more tags across a set of products in bulk — replacing manual product-by-product editing in the Shopify admin. Use for campaign setup (add `summer-sale` to a collection before launch), campaign teardown (remove `flash-sale` after it ends), or catalog reorganization (retag products moving between categories). Tags drive collection rules, marketing segments, and reporting filters, so bulk accuracy matters. Replaces manual Shopify admin bulk editing and CSV import/export workflows.
 
 ## Prerequisites
-- `shopify auth login --store <domain>`
-- API scopes: `read_products`, `write_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_products`, `write_products`
 
 ## Parameters
 Universal (store, format, dry_run) + skill-specific:
@@ -37,6 +41,9 @@ Universal (store, format, dry_run) + skill-specific:
 > ⚠️ Step 2 executes bulk tag mutations. `tagsRemove` is irreversible — if you remove the wrong tag, you must re-add it manually or run this skill again with `action: add`. Run with `dry_run: true` to see the full product list before committing. For large catalogs (1000+ products), dry_run is strongly recommended before any removal operation.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `products` — query
    **Inputs:** `first: 250`, `query` built from `collection_id`, `filter_tag`, or `query_filter`; paginate until all matching products fetched
@@ -111,7 +118,6 @@ mutation TagsRemove($id: ID!, $tags: [String!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: product-tag-bulk-update              ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```

@@ -2,27 +2,30 @@
 name: shopify-admin-cross-sell-opportunity-finder
 role: conversion-optimization
 description: "Read-only: identifies products with high single-purchase rates that could benefit from cross-sell pairing based on category and price affinity."
-toolkit: shopify-admin, shopify-admin-execution
+toolkit: shopify-mcp-connector
 api_version: "2025-01"
 graphql_operations:
   - orders:query
   - products:query
 status: stable
-compatibility: Claude Code, Cursor, Codex, Gemini CLI
+compatibility: Claude Cowork
 ---
+
+> Forked from [shopify-admin-skills](https://github.com/40RTY-ai/shopify-admin-skills)
+> by [40rty](https://40rty.ai) — MIT License. Adapted for Claude Cowork.
+
 
 ## Purpose
 Finds products that are almost always purchased alone (single-item orders) and identifies potential cross-sell partners based on category affinity, price complementarity, and customer overlap. While `frequently-bought-together` finds existing patterns, this skill finds MISSING patterns — products that SHOULD be cross-sold but aren't. Read-only — no mutations.
 
 ## Prerequisites
-- Authenticated Shopify CLI session: `shopify store auth --store <domain> --scopes read_orders,read_products`
-- API scopes: `read_orders`, `read_products`
+- Shopify MCP connector connected in Claude Cowork settings
+- Required store scopes: `read_orders`, `read_products`
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| store | string | yes | — | Store domain |
 | days_back | integer | no | 180 | Order lookback window |
 | solo_threshold | float | no | 70 | % of orders where product is bought alone to flag as "solo" |
 | min_orders | integer | no | 10 | Minimum orders for a product to be analyzed |
@@ -33,6 +36,9 @@ Finds products that are almost always purchased alone (single-item orders) and i
 > ℹ️ Read-only skill — no mutations are executed. Safe to run at any time.
 
 ## Workflow Steps
+
+> Execute all GraphQL operations via the `graphql_query` and `graphql_mutation` MCP tools.
+> The Shopify MCP connector handles store authentication automatically.
 
 1. **OPERATION:** `orders` — query
    **Inputs:** `query: "created_at:>='<NOW - days_back days>'"`, `first: 250`, select `lineItems { product { id, title, productType, vendor }, quantity, originalTotalSet }`, pagination cursor
@@ -109,7 +115,6 @@ query ProductEnrichment($ids: [ID!]!) {
 ```
 ╔══════════════════════════════════════════════╗
 ║  SKILL: Cross-Sell Opportunity Finder        ║
-║  Store: <store domain>                       ║
 ║  Started: <YYYY-MM-DD HH:MM UTC>             ║
 ╚══════════════════════════════════════════════╝
 ```
