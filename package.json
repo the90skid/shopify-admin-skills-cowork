@@ -12,5 +12,9 @@
   "scripts": {
     "validate:index": "node scripts/validate-operations-index.mjs",
     "transform": "node scripts/transform.mjs"
+  },
+  "dependencies": {
+    "glob": "^10.3.0",
+    "gray-matter": "^4.0.3"
   }
 }
